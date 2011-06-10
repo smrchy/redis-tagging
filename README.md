@@ -1,10 +1,13 @@
 # redis-tagging
 
-#### A NodeJS library based helper to make tagging of _sorted_ items in an external DB fun again.
+## A fast and simple tagging library.
+
+Based on [Redis](http://redis.io/) and [NodeJS](http://nodejs.org).
+Useful for easy tagging of (sorted) items in external databases like mySQL.
 
 ### Features
 
-- Maintains the order of tagged items with the help of [**Redis Sorted Sets**](http://redis.io/commands#sorted_set).
+- **Maintains the order of tagged items** with the help of [**Redis Sorted Sets**](http://redis.io/commands#sorted_set).
 - Fast and efficient paging over results with support of **limit**, **offset** and **order**.
 - Namespaces to keep multiple "buckets" of tags on the same server.
 - Counters for each tag in a namespace. 
@@ -139,6 +142,10 @@ then use HTTP (see **REST Interface** below).
 	Get all IDs saved for a namespace. This is a costly operation that you should only use for scheduled cleanup routines.
 
 	Example: `GET http://yourserver:8010/tagger/allids/concerts`
+
+## Javascript version
+
+see *redis-tagging.coffee* for details.
 
 ## How to migrate to redis-tagging
 
