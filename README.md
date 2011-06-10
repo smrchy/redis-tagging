@@ -43,7 +43,7 @@ Here is how `redis-tagging` will make the tagging of items in external databases
 
 	node server_multi.js
 
-and then use HTTP (see **REST Interface** below).
+then use HTTP (see **REST Interface** below).
 
 ### Or use it from within NodeJS:
 	
