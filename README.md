@@ -68,7 +68,7 @@ then use HTTP (see **REST Interface** below).
 
 	Add or update an item. The URL contains the namespace (e.g. 'concerts') and the id for this item.
 
-	Example: `POST http://yourserver:8010/tagger/id/concerts/571fc1ba4d`
+	Example: `POST /tagger/id/concerts/571fc1ba4d`
 
 	Required form-fields:
 
@@ -81,7 +81,7 @@ then use HTTP (see **REST Interface** below).
 
 	Delete an item and all its tag associations.
 
-	Example: `DELETE http://yourserver:8010/tagger/id/concerts/12345`
+	Example: `DELETE /tagger/id/concerts/12345`
 
 	Returns: `{"ok":true}`
 
@@ -100,7 +100,7 @@ then use HTTP (see **REST Interface** below).
 	- `withscores` (Number) *optional* default: 0 Set this to 1 to also return the scores for each item.
 	- `order` (String) *optional* Either **asc** or **desc** (default).
 
-	Example: `http://yourserver:8010/tagger/tags/concerts?tags=["Berlin","rock"]&limit=2&offset=4&type=inter`
+	Example: `/tagger/tags/concerts?tags=["Berlin","rock"]&limit=2&offset=4&type=inter`
 
 	Returns: 
 
@@ -121,7 +121,7 @@ then use HTTP (see **REST Interface** below).
 
 	Get the top *n* tags for a namespace.
 
-	Example: `GET http://yourserver:8010/tagger/toptags/concerts/3`
+	Example: `GET /tagger/toptags/concerts/3`
 
 	Returns:
 
@@ -136,13 +136,13 @@ then use HTTP (see **REST Interface** below).
 
 	Get all associated tags for an item. Usually this operation is not needed as you will want to store all tags for an item in you database.
 
-	Example: `GET http://yourserver:8010/tagger/id/concerts/12345`
+	Example: `GET /tagger/id/concerts/12345`
 
 - GET */tagger/allids/:namespace*
 
 	Get all IDs saved for a namespace. This is a costly operation that you should only use for scheduled cleanup routines.
 
-	Example: `GET http://yourserver:8010/tagger/allids/concerts`
+	Example: `GET /tagger/allids/concerts`
 
 ## Javascript version
 
