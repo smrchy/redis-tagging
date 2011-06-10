@@ -60,7 +60,8 @@ then use HTTP (see **REST Interface** below).
 
 		rt.toptags("concerts", 30, function (reply) {...});
  	...
- 	Have a look at redis-tagging.coffee for all supported commands.
+
+ Have a look at **redis-tagging.coffee** for all supported commands.
 
 ## REST Interface:
 	
@@ -100,7 +101,7 @@ then use HTTP (see **REST Interface** below).
 	- `withscores` (Number) *optional* default: 0 Set this to 1 to also return the scores for each item.
 	- `order` (String) *optional* Either **asc** or **desc** (default).
 
-	Example: `/tagger/tags/concerts?tags=["Berlin","rock"]&limit=2&offset=4&type=inter`
+	Example: `GET /tagger/tags/concerts?tags=["Berlin","rock"]&limit=2&offset=4&type=inter`
 
 	Returns: 
 
