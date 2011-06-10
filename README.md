@@ -8,7 +8,8 @@ Useful for easy tagging of (sorted) items in external databases like mySQL.
 ### Features
 
 - **Maintains the order of tagged items** with the help of [**Redis Sorted Sets**](http://redis.io/commands#sorted_set).
-- Fast and efficient paging over results with support of **limit**, **offset** and **order**.
+- **Unions** and **intersections** on tags while also maintaining the order.
+- Fast and efficient paging over results with support of **limit**, **offset**.
 - Namespaces to keep multiple "buckets" of tags on the same server.
 - Counters for each tag in a namespace. 
 
