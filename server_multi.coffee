@@ -6,7 +6,7 @@ connect = require "connect"
 url = require "url"
 qs = require "querystring"
 redisclient = require "redis"
-redis = redisclient.createClient(6379, "192.168.11.24")
+redis = redisclient.createClient()
 RedisTagging = require("./redis-tagging").multi_namespace
 
 rt =  new RedisTagging redis, NAMESPACE_PREFIX
