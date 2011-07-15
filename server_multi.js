@@ -7,7 +7,7 @@
   url = require("url");
   qs = require("querystring");
   redisclient = require("redis");
-  redis = redisclient.createClient();
+  redis = redisclient.createClient(6379, "192.168.11.24");
   RedisTagging = require("./redis-tagging").multi_namespace;
   rt = new RedisTagging(redis, NAMESPACE_PREFIX);
   redis_tagger = function(app) {
@@ -67,6 +67,16 @@
         }
       };
       rt.tags(req.params.namespace, p);
+    });
+    app.get(DEFAULT_ROUTE + "/namespaces", function(req, res) {
+      rt.namespaces(function(reply) {
+        return _replyJSON(req, res, reply);
+      });
+    });
+    app.del(DEFAULT_ROUTE + "/namespace/:namespace", function(req, res) {
+      rt.removens(req.params.namespace, function(reply) {
+        _replyJSON(req, res, reply);
+      });
     });
   };
   connect.createServer(connect.bodyParser(), connect.logger(), connect.router(redis_tagger)).listen(PORT);

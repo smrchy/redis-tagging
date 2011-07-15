@@ -200,6 +200,30 @@ class RedisTagging
 			return
 		return
 
+	# Namespaces
+	#
+	namespaces: (callback) =>
+		@redis.keys @nsprefix + "*" + ":TAGCOUNT", (err, resp) =>
+			ns = for e in resp
+				e.substr(@nsprefix.length,(e.length - @nsprefix.length - ":TAGCOUNT".length))
+			callback({namespaces:ns})
+			return
+		return
+
+	# Remove a namespace and all its keys
+	#
+	removens: (namespace, callback) =>
+		@redis.keys @nsprefix + namespace + '*', (err, resp) =>
+			if resp.length
+				@redis.del resp, (err, resp) =>
+					callback({ok: true, keys: resp})
+					return
+				return
+			callback({ok: true, keys: 0})
+			return
+		return
+		
+
 	
 # Class to use Redis-Tagging with a single namespace
 class RedisTaggingSingleNS extends RedisTagging

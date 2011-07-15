@@ -18,6 +18,8 @@
     function RedisTagging(redis, nsprefix) {
       this.redis = redis;
       this.nsprefix = nsprefix;
+      this.removens = __bind(this.removens, this);;
+      this.namespaces = __bind(this.namespaces, this);;
       this.toptags = __bind(this.toptags, this);;
       this.tags = __bind(this.tags, this);;
       this.allids = __bind(this.allids, this);;
@@ -228,6 +230,40 @@
             rows: rows
           };
           callback(o);
+        });
+      }, this));
+    };
+    RedisTagging.prototype.namespaces = function(callback) {
+      this.redis.keys(this.nsprefix + "*" + ":TAGCOUNT", __bind(function(err, resp) {
+        var e, ns;
+        ns = (function() {
+          var _i, _len, _results;
+          _results = [];
+          for (_i = 0, _len = resp.length; _i < _len; _i++) {
+            e = resp[_i];
+            _results.push(e.substr(this.nsprefix.length, e.length - this.nsprefix.length - ":TAGCOUNT".length));
+          }
+          return _results;
+        }).call(this);
+        callback({
+          namespaces: ns
+        });
+      }, this));
+    };
+    RedisTagging.prototype.removens = function(namespace, callback) {
+      this.redis.keys(this.nsprefix + namespace + '*', __bind(function(err, resp) {
+        if (resp.length) {
+          this.redis.del(resp, __bind(function(err, resp) {
+            callback({
+              ok: true,
+              keys: resp
+            });
+          }, this));
+          return;
+        }
+        callback({
+          ok: true,
+          keys: 0
         });
       }, this));
     };
