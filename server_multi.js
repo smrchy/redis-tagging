@@ -17,7 +17,7 @@
       u = qs.parse(url.parse(req.url).query);
       if (u.callback) {
         res.writeHead(200, {
-          "Content-Type": "application/javascript; charset=UTF-8"
+          "Content-Type": "application/javascript"
         });
         res.end(u.callback + '(' + JSON.stringify(reply) + ');');
       } else {
@@ -27,7 +27,7 @@
           });
         } else {
           res.writeHead(200, {
-            "Content-Type": "application/json; charset=UTF-8"
+            "Content-Type": "application/json"
           });
         }
         res.end(JSON.stringify(reply));
