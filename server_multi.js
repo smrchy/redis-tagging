@@ -21,9 +21,15 @@
         });
         res.end(u.callback + '(' + JSON.stringify(reply) + ');');
       } else {
-        res.writeHead(200, {
-          "Content-Type": "application/json; charset=UTF-8"
-        });
+        if (u.forcetext) {
+          res.writeHead(200, {
+            "Content-Type": "text/html"
+          });
+        } else {
+          res.writeHead(200, {
+            "Content-Type": "application/json; charset=UTF-8"
+          });
+        }
         res.end(JSON.stringify(reply));
       }
     };
