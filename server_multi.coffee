@@ -108,5 +108,6 @@ redis_tagger = (app) ->
 connect.createServer(
 	connect.bodyParser()
 	connect.logger()
-	connect.router redis_tagger
-).listen PORT
+	connect.router(redis_tagger)
+).listen(PORT)
+

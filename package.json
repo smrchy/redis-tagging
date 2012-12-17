@@ -9,6 +9,6 @@
 	"dependencies": {
 		"hiredis": "*",
 		"redis": "*",
-		"connect": "2.4.5"
+		"connect": "<2"
 	}
 }
