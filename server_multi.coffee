@@ -111,3 +111,5 @@ connect.createServer(
 	connect.router(redis_tagger)
 ).listen(PORT)
 
+console.log("STARTED Redis-Tagging (multi) on port:", PORT)
+
