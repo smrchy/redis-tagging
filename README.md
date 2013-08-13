@@ -1,9 +1,11 @@
 # redis-tagging
 
+## ATTENTION: This branch is currently under development for use via npm. Use the `old-without-npm` branch until then.
+
 ## A fast and simple tagging library.
 
 Based on [Redis](http://redis.io/) and [NodeJS](http://nodejs.org).
-Useful for easy tagging of (sorted) items in external databases like mySQL.
+Useful for easy tagging of (sorted) items in external databases.
 
 ### Features
 

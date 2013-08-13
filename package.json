@@ -1,8 +1,7 @@
 {
 	"name": "redis-tagging",
 	"description": "Redis Tagging",
-	"version": "0.0.1",
-	"private": true,
+	"version": "1.0.0",
 	"engines": {
 		"node": "> 0.8.1"
 	},
