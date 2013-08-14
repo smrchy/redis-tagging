@@ -1,13 +1,29 @@
 {
-	"name": "redis-tagging",
-	"description": "Redis Tagging",
-	"version": "1.0.0",
-	"engines": {
-		"node": "> 0.8.1"
+    "name": "redis-tagging",
+    "description": "Fast and simple tagging of (sorted) items",
+    "version": "1.0.0",
+    "author": "P. Liess <smrchy+npm@gmail.com>",
+    "engines": {
+		"node": "> 0.8.10"
+	},
+	"scripts": {
+		"test": "mocha ./test/test.js"
 	},
 	"dependencies": {
 		"hiredis": "*",
-		"redis": "*",
-		"connect": "<2"
+		"redis": "*"
+	},
+	"devDependencies": {
+		"mocha": "*",
+		"should": "*"
+	},
+	"keywords": [
+		"tags",
+		"tagging",
+		"redis"
+	],
+	"repository" : {
+		"type": "git",
+		"url": "http://github.com/smrchy/redis-tagging.git"
 	}
 }

@@ -1,16 +1,46 @@
 ###
-Redis-Tagging
-A tagging helper library for NodeJS and Redis
-Version 0.2
-Copyright (c) 2011 TCS    dev (at) tcs.de
-Released under the MIT License
+Redis Tagging
+
+The MIT License (MIT)
+
+Copyright © 2013 Patrick Liess, http://www.tcs.de
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ###
 
+RedisInst = require "redis"
+
+# # Redis Tagging
+#
+# To create a new instance use:
+#
+# 	RedisTagging = require("redis-tagging")
+#	rt = new RedisTagging()
+#
+#	Parameters via an `options` object:
+#
+#	* `port`: *optional* Default: 6379. The Redis port.
+#	* `host`, *optional* Default: "127.0.0.1". The Redis host.
+#	* `nsprefix`: *optional* Default: "rt". The namespace prefix for all Redis keys used by this module.
+#
 class RedisTagging
-	constructor: (@redis, @nsprefix) ->
+
+	constructor: (options={}) ->
+		@redisns = options.namespace or "rt"
+		@redisns = @redisns + ":"
+		
+		port = options.port or 6379
+		host = options.host or "127.0.0.1"
+
+		@redis = RedisInst.createClient(port, host)
+
 
 	# Return an array with Redis commands to delete an ID, all tag connections and update the counters 
-	_deleteID: (ns, id, callback) =>
+	_deleteID: (ns, id, cb) =>
 		mc = []
 		id_index = ns + ':ID:' + id
 		@redis.smembers id_index, (err, resp) =>
@@ -24,29 +54,54 @@ class RedisTagging
 				# Clean up the TAGCOUNT
 				mc.push( [ 'zremrangebyscore', ns + ':TAGCOUNT', 0, 0] )
 			# Return to the caller with the Multi-Command array
-			callback(mc)
+			cb(mc)
+			return
+		return
+
+	# ## Get
+	#
+	# Get all tags for an ID
+	#
+	# Parameters object:
+	#
+	# * `bucket` (String)
+	# * `id` (String)
+	#
+	get: (options, cb) =>
+		ns = @redisns + options.bucket
+		@redis.smembers "#{ns}:ID:#{options.id}", (err, resp) ->
+			if err
+				cb(err)
+				return
+			tags = for tag in resp
+				tag
+			cb(null, tags)
 			return
 		return
 
 	# ## Set
 	# 
-	# Set (insert or update) an ID
+	# Set (insert or update) an item
 	# 
-	# * id (String)
-	# * score (Number)
-	# * tags (Array)
-	set: (namespace, id, score, tags, callback) =>
-		ns = @nsprefix + namespace
-		id_index = ns + ':ID:' + id
+	# Parameters object:
+	#
+	# * `bucket` (String)
+	# * `id` (String)
+	# *	`score` (Number)
+	# *	`tags` (Array)
+	#
+	set: (options, cb) =>
+		ns = @redisns + options.bucket
+		id_index = ns + ':ID:' + options.id
 		# First delete this ID from the DB. We will recreate it from scratch
-		@_deleteID ns, id, (mc) =>
+		@_deleteID ns, options.id, (mc) =>
 			# mc contains the delete commands for this tag. Now we add add this item again with all new tags
-			for tag in tags
+			for tag in options.tags
 				mc.push( [ 'zincrby', ns + ':TAGCOUNT', 1, tag ] )
 				mc.push( [ 'sadd', id_index, tag ] )
-				mc.push( [ 'zadd', ns  + ':TAGS:' + tag, score, id ] )
+				mc.push( [ 'zadd', ns  + ':TAGS:' + tag, options.score, options.id ] )
 			@redis.multi(mc).exec (err, resp) ->
-				callback({ok: true})
+				cb(null, true)
 				return
 			return
 		return
@@ -55,7 +110,7 @@ class RedisTagging
 	#
 	# Delete an ID (we use remove because delete is a reserved word in JS)
 	remove: (namespace, id, callback) =>
-		ns = @nsprefix + namespace
+		ns = @redisns + namespace
 		@_deleteID ns, id, (mc) =>
 			if mc.length
 				@redis.multi(mc).exec (err, resp) ->
@@ -67,17 +122,7 @@ class RedisTagging
 		return
 	
 
-	# ## Get
-	#
-	# Get all tags for an ID
-	get: (namespace, id, callback) =>
-		ns = @nsprefix + namespace
-		@redis.smembers ns + ':ID:' + id, (req, resp) ->
-			tags = for tag in resp
-				tag
-			callback tags 
-			return
-		return
+
 	
 	# ## AllIDs
 	#
@@ -224,35 +269,4 @@ class RedisTagging
 		return
 		
 
-	
-# Class to use Redis-Tagging with a single namespace
-class RedisTaggingSingleNS extends RedisTagging
-	constructor: (@redis, @nsprefix, @namespace) ->
-
-	set: (id, score, tags, callback) =>
-		super @namespace, id, score, tags, callback
-		return
-
-	get: (id, callback) =>
-		super @namespace, id, callback
-		return
-
-	remove: (id, callback) =>
-		super @namespace, id, callback
-		return
-
-	allids: (callback) =>
-		super @namespace, callback
-		return
-
-	tags: (p) =>
-		super @namespace, p
-		return
-
-	toptags: (amount) =>
-		super @namespace, amount
-		return
-
-
-exports.multi_namespace = RedisTagging
-exports.single_namespace = RedisTaggingSingleNS
+module.exports = RedisTagging

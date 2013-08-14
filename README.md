@@ -1,30 +1,20 @@
-# redis-tagging
+# Redis Tagging
 
-## ATTENTION: This branch is currently under development for use via npm. Use the `old-without-npm` branch until then.
+Fast and simple tagging of (sorted) items.
 
-## A fast and simple tagging library.
+## Features
 
-Based on [Redis](http://redis.io/) and [NodeJS](http://nodejs.org).
-Useful for easy tagging of (sorted) items in external databases.
-
-### Features
-
-- **Maintains the order of tagged items** with the help of [**Redis Sorted Sets**](http://redis.io/commands#sorted_set).
+- **Maintains the order of tagged items** with the help of **Redis Sorted Sets**.
 - **Unions** and **intersections** on tags while also maintaining the order.
-- Fast and efficient paging over results with support of **limit**, **offset**.
+- **Fast and efficient paging** over thousands of results with support of `limit`, `offset`.
 - Namespaces to keep multiple "buckets" of tags on the same server.
 - Counters for each tag in a namespace. 
 
-#### Comes in two flavors
-
-- **RESTful** (to use from PHP, ASP, Coldfusion etc. where you can't install Redis and or NodeJS)
-- **Javascript** version for use from within NodeJS.
-
-### The story
+## A short example
 
 Tagging and efficient querying of items with unions and intersections is no fun with traditional databases.
 
-Example: A SQL database with concerts ordered by date and each item is tagged with tags like `chicago`, `rock`, `stadium`, `open-air`. Now let's try to get the following items:
+Imagine a SQL database with concerts that need to be output ordered by date. Each item is tagged with tags like `chicago`, `rock`, `stadium`, `open-air`. Now let's try to get the following items:
 
 - 10 concerts (orderd by date) in `chicago` (limit=10, tags=["chicago"]) and the total amount of concerts in `chicago`.
 - The next 10 concerts, skipping the first 10,  (limit=10, tags=["chicago"], offset=10) and the total amount.
@@ -34,22 +24,19 @@ Example: A SQL database with concerts ordered by date and each item is tagged wi
 
 Those queries together with the maintenance of tables and indexes can be a pain with SQL. Enter Redis and its fast in-memory set opererations.
 
-### Redis-Tagging
+### Fast and efficient tagging
 
 Here is how `redis-tagging` will make the tagging of items in external databases fast and easy:
 
-- When storing an item in SQL you still store the tags but in a normal string field for reference and easy output. **You will no longer use this field in a WHERE-statement**. No additional tables for tags and tag associations are needed.
+- When storing an item in your database you still store the tags but in a normal string field for reference and easy output. **You will no longer use this field in a WHERE-statement**. No additional tables for tags and tag associations are needed.
 - You post the `id`, a `score` (for sorting) and the list of `tags` to `redis-tagging` whenever you add, update or delete an item. The *score* could be a date timestamp or any other number you use for sorting.
-- As `redis-tagging` stores only IDs, score and tags the result of a query (e.g. all items with tags `chicago` and `rock`) is a list of IDs *but ordered correctly* by the score you supplied.
-- You use this list of IDs that are returned from `redis-tagging` to grab the actual items from your database.
+- `redis-tagging` will output all results (e.g. all items with tags `chicago` and `rock`) as a list of IDs *ordered correctly* by the score you supplied.
+- You use this list of IDs to get the actual items from your database.
+
+So with little changes you will end up with a lot less code, tables and need to maintain a complex structure just to support fast tagging.
+
 
 ## Installation
-
-### REST Interface to use *redis-tagger* from external applications (PHP, ASP etc.):
-
-	node server_multi.js
-
-then use HTTP (see **REST Interface** below).
 
 ### Or use it from within NodeJS:
 	
