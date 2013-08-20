@@ -1,4 +1,4 @@
-# Redis Tagging
+# Redis-Tagging
 
 [![Build Status](https://secure.travis-ci.org/smrchy/redis-tagging.png?branch=master)](http://travis-ci.org/smrchy/redis-tagging)
 
@@ -29,11 +29,11 @@ Those queries together with the maintenance of tables and indexes can be a pain 
 
 ### Fast and efficient tagging
 
-Here is how `redis-tagging` will make the tagging of items in external databases fast and easy:
+Here is how Redis-Tagging will make the tagging of items in external databases fast and easy:
 
 - When storing an item in your database you still store the tags but in a normal string field for reference and easy output. **You will no longer use this field in a WHERE-statement**. No additional tables for tags and tag associations are needed.
-- You post the `id`, a `score` (for sorting) and the list of `tags` to `redis-tagging` whenever you add, update or delete an item. The *score* could be a date timestamp or any other number you use for sorting.
-- `redis-tagging` will output all results (e.g. all items with tags `chicago` and `rock`) as a list of IDs *ordered correctly* by the score you supplied.
+- You post the `id`, a `score` (for sorting) and the list of `tags` to Redis-Tagging whenever you add, update or delete an item. The *score* could be a date timestamp or any other number you use for sorting.
+- Redis-Tagging will output all results (e.g. all items with tags `chicago` and `rock`) as a list of IDs *ordered correctly* by the score you supplied.
 - You use this list of IDs to get the actual items from your database.
 
 So with little changes you will end up with a lot less code, tables and need to maintain a complex structure just to support fast tagging.
@@ -51,7 +51,7 @@ var rt = new RedisTagging();
 ```
 
 **Important:** Redis-Tagging works with items from your database (whatever you might use). Its purpose is to make tag based lookups fast and easy.  
-A typical item in your db should include an id (the primary key) and a list of tags for this items. You could store this as a JSON string (e.g. `["car", "bmw", "suv", "x5"]`.  
+A typical item in your database should include an id (the primary key) and a list of tags for this items. You could store this as a JSON string (e.g. `["car", "bmw", "suv", "x5"]`.  
 You'll want to try to keep your db in sync with the item ids stored in Redis-Tagging.
 
 Go through the following examples to see what Redis-Tagging can do for you: 
@@ -91,7 +91,8 @@ rt.get(
 	},
 	function (err, resp) {
 		// resp countains an array of all tags
-		// For the above set example resp with contain: ["new york", "stadium", "rock", "open-air"]
+		// For the above set example resp will contain:
+		// ["new york", "stadium", "rock", "open-air"]
 	}
 );
 ```
@@ -190,7 +191,34 @@ rt.toptags(
 );
 ```
 
+### Buckets
 
+List all buckets with at least one item stored in Redis.
+
+Important: This method uses the Redis `keys` command. Use with care.
+
+```javascript
+rt.buckets(
+	function (err, resp) {
+		// resp contains an array with all buckets
+	}
+);
+```
+
+### Remove a bucket
+
+Removes a single bucket and all items
+
+```javascript
+rt.removebucket(
+	{
+		bucket: "concerts"
+	},
+	function (err, resp) {
+		// resp contains an object with details about the removal
+	}
+);
+```
 
 ## How to migrate to Redis-Tagging
 
@@ -203,6 +231,11 @@ rt.toptags(
 - Now use the methods described above to make intersections and get the IDs back.
 - Use the IDs to get the actual records from your DB and display them as usual.
 - Enjoy.
+
+## Todo
+
+* better input validation for all methods
+* more tests
 
 ## License 
 

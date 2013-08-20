@@ -338,13 +338,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     };
 
     RedisTagging.prototype.ERRORS = {
-      "missingTags": "No tags supplied",
-      "invalidFormat": "Invalid <%= item %> format",
-      "invalidValue": "<%= item %> must be between <%= min %> and <%= max %>",
-      "messageNotString": "Message must be a string",
-      "messageTooLong": "Message too long",
-      "queueNotFound": "Queue not found",
-      "queueExists": "Queue exists"
+      "missingTags": "No tags supplied"
     };
 
     return RedisTagging;

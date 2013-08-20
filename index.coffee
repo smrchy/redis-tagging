@@ -294,7 +294,7 @@ class RedisTagging
 	# Parameters object:
 	#
 	# * `bucket`(String)
-
+	#
 	removebucket: (options, cb) =>
 		@redis.keys @redisns + options.bucket + '*', (err, resp) =>
 			if err
@@ -354,11 +354,5 @@ class RedisTagging
 
 	ERRORS:
 		"missingTags": "No tags supplied"
-		"invalidFormat": "Invalid <%= item %> format"
-		"invalidValue": "<%= item %> must be between <%= min %> and <%= max %>"
-		"messageNotString": "Message must be a string"
-		"messageTooLong": "Message too long"
-		"queueNotFound": "Queue not found"
-		"queueExists": "Queue exists"
-
+		
 module.exports = RedisTagging
