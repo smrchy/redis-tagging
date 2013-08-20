@@ -11,7 +11,7 @@ Fast and simple tagging of (sorted) items.
 - **Fast and efficient paging** over thousands of results with support of `limit`, `offset`.
 - Namespaces to keep multiple "buckets" of tags on the same server.
 - Counters for each tag in a namespace. 
-- **Tests**
+- [Test coverage](http://travis-ci.org/smrchy/redis-tagging)
 
 ## A short example
 
