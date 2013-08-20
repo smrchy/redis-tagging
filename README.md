@@ -1,5 +1,7 @@
 # Redis Tagging
 
+[![Build Status](https://secure.travis-ci.org/smrchy/redis-tagging.png?branch=master)](http://travis-ci.org/smrchy/redis-tagging)
+
 Fast and simple tagging of (sorted) items.
 
 ## Features
@@ -9,6 +11,7 @@ Fast and simple tagging of (sorted) items.
 - **Fast and efficient paging** over thousands of results with support of `limit`, `offset`.
 - Namespaces to keep multiple "buckets" of tags on the same server.
 - Counters for each tag in a namespace. 
+- **Tests**
 
 ## A short example
 
