@@ -38,135 +38,168 @@ So with little changes you will end up with a lot less code, tables and need to 
 
 ## Installation
 
-### Or use it from within NodeJS:
-	
-	...
-	var	NAMESPACE_PREFIX = "tgs:",
-		redisclient = require("redis"),
-		redis = redisclient.createClient(),
-		RedisTagging = require("./redis-tagging").multi_namespace,
-		rt = new RedisTagging(redis, NAMESPACE_PREFIX);
+`npm install redis-tagging`
 
-		rt.toptags("concerts", 30, function (reply) {...});
- 	...
+## Usage
 
- Have a look at **redis-tagging.coffee** for all supported commands.
+```javascript
+var RedisTagging = require("redis-tagging");
+var rt = new RedisTagging();
+```
 
-## REST Interface:
-	
-- POST */tagger/id/:namespace/:id*
+**Important:** Redis-Tagging works with items from your database (whatever you might use). Its purpose is to make tag based lookups fast and easy.  
+A typical item in your db should include an id (the primary key) and a list of tags for this items. You could store this as a JSON string (e.g. `["car", "bmw", "suv", "x5"]`.  
+You'll want to try to keep your db in sync with the item ids stored in Redis-Tagging.
 
-	Add or update an item. The URL contains the namespace (e.g. 'concerts') and the id for this item.
+Go through the following examples to see what Redis-Tagging can do for you: 
 
-	Example: `POST /tagger/id/concerts/571fc1ba4d`
+### Set tags for an item
 
-	Required form-fields:
+This will create an item with the id `itm123`.  
+Note: There is no partial update of tags for an item. You always write the full list of tags.
 
-	- score (Number) This is the sorting criteria for this item
-	- tags (String) A JSON string with an array of one or more tags (e.g. ["chicago","rock"])
+```javascript
+rt.set(
+	{
+		bucket: "concerts",
+		id: "itm123",
+		tags: ["new york", "stadium", "rock", "open-air"],
+		score: 1356341337
+	},
+	function (err, resp) {
+		if (resp === true) {
+			// item was saved
+		}
+	}
+);
+```
 
-	Returns: `{"ok":true}`
+### Get tags for an item
 
-- DELETE */tagger/id/:namespace/:id*
+Returns all tags for an item id.
 
-	Delete an item and all its tag associations.
+Note: This method is usually not needed if you store the tags for each item in your database.
 
-	Example: `DELETE /tagger/id/concerts/12345`
+```javascript
+rt.get(
+	{
+		bucket: "concerts",
+		id: "itm123"
+	},
+	function (err, resp) {
+		// resp countains an array of all tags
+		// For the above set example resp with contain: ["new york", "stadium", "rock", "open-air"]
+	}
+);
+```
 
-	Returns: `{"ok":true}`
+### Remove all tags for an item
 
-- GET */tagger/tags/:namespace?queryparams*
+Note: This is the same as using `set` with an empty array of tags.
 
-	The main method. Return the IDs for one or more tags. When more than one tag is supplied the query can be an intersection (default) or a union.
-	`type=inter` (default) only those IDs will be returned where all tags match. 
-	`type=union` all IDs where any tag matches will be returned.
+```javascript
+r.remove(
+	{
+		bucket: "concerts",
+		id: "itm123"
+	},
+	function (err, resp) {
+		if (resp === true) {
+			// item was removed
+		}
+	}
+);
+```
 
-	Parameters:
+### Get all item ids in a bucket
 
-	- `tags` (String) a JSON string of one or more tags.
-	- `type` (String) *optional* Either **inter** (default) or **union**.
-	- `limit` (Number) *optional* default: 100.
-	- `offset` (Number) *optional* default: 0 The amount of items to skip. Useful for paging thru items.
-	- `withscores` (Number) *optional* default: 0 Set this to 1 to also return the scores for each item.
-	- `order` (String) *optional* Either **asc** or **desc** (default).
+```javascript
+r.allids(
+	{
+		bucket: "concerts"
+	}
+	,
+	function (err, resp) {
+		// resp countains an array of all ids
+	}
+);
+```
 
-	Example: `GET /tagger/tags/concerts?tags=["Berlin","rock"]&limit=2&offset=4&type=inter`
+### Tags: Query items by tag
 
-	Returns: 
+The main method. Return the IDs for one or more tags. When more than one tag is supplied the query can be an intersection (default) or a union.
+`type=inter` (default) only those IDs will be returned where all tags match. 
+`type=union` all IDs where any tag matches will be returned.
 
-		{"total_rows":108,
-		 "rows":["8167","25652"],
-		 "limit":2,
-		 "offset":4}
+Parameters object:
 
-	The returned data is item no. 5 and 6. The first 4 got skipped (offset=4). You can now do a
+* `bucket` (String)
+* `tags` (Array) One or more tags
+* `limit` (Number) *optional* Default=100 (0 will return 0 items but will return the total_items!)
+* `offset` (Number) *optional* Default=0
+* `withscores` (Number) *optional* Default=0 Set this to 1 to output the scores
+* `order` (String) *optional* Default ="desc"
+* `type` (String) *optional* "inter", "union" Default: "inter"
 
-	`SELECT * FROM Concerts WHERE ID IN (8167,25652) ORDER BY Timestamp DESC`
+```javascript
+rt.tags(
+	{
+		bucket: "concerts",
+		tags: ["berlin", "rock"],
+		limit: 2,
+		offset: 4
+	},
+	function (err, resp) {
+		// resp contains:
+		// 	{"total_items":108,
+		//  "items":["8167","25652"],
+		//  "limit":2,
+		//  "offset":4}
+	}
+);
+```
+The returned data is item no. 5 and 6. The first 4 got skipped (offset=4). You can now do a
 
-	Important: `redis-tagging` uses Redis Sorted Sets. This is why the order of the items that you supplied with the `score` parameter is maintained. This way you can page thru large result sets without doing huge SQL queries.
+`SELECT * FROM Concerts WHERE ID IN (8167,25652) ORDER BY Timestamp DESC`
 
-	Idea: You might consider to use a reverse proxy on this URL so clients can access this data via AJAX. JSONP via standard `callback` URL parameter is supported.
 
-- GET */tagger/toptags/:namespace/:amount*
+### Top Tags
 
-	Get the top *n* tags for a namespace.
+Return the top *n* tags of a bucket.
 
-	Example: `GET /tagger/toptags/concerts/3`
+```javascript
+rt.toptags(
+{
+		bucket: "concerts",
+		amount: 3
+	},
+	function (err, resp) {
+		// resp contains:
+		// 	{
+		//		"total_items": 18374,
+		//	 	"items":[
+		//			{"tag":"rock", "count":1720},
+		//			{"tag":"pop", "count":1585},
+		//			{"tag":"New York", "count":720}
+		//		]
+		//	}
+	}
+);
+```
 
-	Returns:
 
-		{"total_rows": 18374,
-		 "rows":[
-			{"tag":"rock", "count":1720},
-			{"tag":"pop", "count":1585},
-			{"tag":"New York", "count":720}
-		]}
 
-- GET */tagger/id/:namespace/:id*
-
-	Get all associated tags for an item. Usually this operation is not needed as you will want to store all tags for an item in you database.
-
-	Example: `GET /tagger/id/concerts/12345`
-
-- GET */tagger/allids/:namespace*
-
-	Get all IDs saved for a namespace. This is a costly operation that you should only use for scheduled cleanup routines.
-
-	Example: `GET /tagger/allids/concerts`
-
-## Javascript version
-
-see *redis-tagging.coffee* for details.
-
-## How to migrate to redis-tagging
+## How to migrate to Redis-Tagging
 
 - Make sure your DB has the following fields for the items you want to tag (names don't need to match exactly):
 	- `id`: A primary key to quickly find your item.
 	- `score`: Any number you use to sort your data. This is usually a date. If you saved a date in date-format you need to convert it to a numeric timestamp.
-	- `tags`: A list of tags for this item. It is up to you how you store this. Usually a normal string field is sufficient. When you supply them to `redis-tagging` you supply a JSON array.
-- Do a POST / SET for each item to populate the `redis-tagging` data.
-- When you insert / update / delete items in your DB make sure you also tell `redis-tagging` about it.
+	- `tags`: A list of tags for this item. It is up to you how you store this. Usually a normal string field is sufficient.
+- Do a `set` for each item to populate the Redis-Tagging data.
+- When you insert / update / delete items in your DB make sure you also tell Redis-Tagging about it.
 - Now use the methods described above to make intersections and get the IDs back.
 - Use the IDs to get the actual records from your DB and display them as usual.
 - Enjoy.
-
-## Using redis-tagger with a single namespace
-
-To use `redis-tagger` in NodeJS with just one single namespace:
-
-	var	NAMESPACE_PREFIX = "tgs:",
-		redisclient = require("redis"),
-		redis = redisclient.createClient(),
-		RedisTagging = require("./redis-tagging").single_namespace,
-		rt = new RedisTagging(redis, NAMESPACE_PREFIX, "concerts");
-
-		rt.toptags(30, function (reply) {...});
-
-
-
-## Work in progress
-
-`redis-tagging` is work in progress. Your ideas, suggestions etc. are very welcome.
 
 ## License 
 
