@@ -144,18 +144,10 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     RedisTagging.prototype.tags = function(options, cb) {
       var lastelement, mc, ns, prefix, resultkey, rndkey, tag, tagsresult, _keys,
         _this = this;
-      if (this._validate(options, ["bucket", "tags"], cb) === false) {
+      if (this._validate(options, ["bucket", "tags", "offset", "limit", "withscores", "type", "order"], cb) === false) {
         return;
       }
       ns = this.redisns + options.bucket;
-      options = {
-        tags: options.tags,
-        limit: Number(options.limit || 100),
-        offset: Number(options.offset || 0),
-        withscores: Number(options.withscores) || 0,
-        order: options.order === "asc" ? "" : "rev",
-        type: (options.type || "inter").toLowerCase()
-      };
       prefix = ns + ':TAGS:';
       lastelement = options.offset + options.limit - 1;
       mc = [];
@@ -232,8 +224,11 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     RedisTagging.prototype.toptags = function(options, cb) {
       var mc, ns, rediskey,
         _this = this;
+      if (this._validate(options, ["bucket", "amount"], cb) === false) {
+        return;
+      }
       ns = this.redisns + options.bucket;
-      options.amount = Math.abs(options.amount || 0) - 1;
+      options.amount = options.amount - 1;
       rediskey = ns + ':TAGCOUNT';
       mc = [["zcard", rediskey], ["zrevrange", rediskey, 0, options.amount, "WITHSCORES"]];
       this.redis.multi(mc).exec(function(err, resp) {
@@ -285,6 +280,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
     RedisTagging.prototype.removebucket = function(options, cb) {
       var _this = this;
+      if (this._validate(options, ["bucket"], cb) === false) {
+        return;
+      }
       this.redis.keys(this.redisns + options.bucket + '*', function(err, resp) {
         if (err) {
           _this._handleError(cb, err);
@@ -362,12 +360,38 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         item = items[_i];
         switch (item) {
           case "bucket":
+          case "id":
+          case "tags":
             if (!o[item]) {
               this._handleError(cb, "missingParameter", {
                 item: item
               });
               return false;
             }
+            break;
+          case "score":
+            o[item] = parseInt(o[item] || 0, 10);
+            break;
+          case "limit":
+            o[item] = Math.abs(parseInt(o[item] || 100, 10));
+            break;
+          case "offset":
+          case "withscores":
+          case "amount":
+            o[item] = Math.abs(parseInt(o[item] || 0, 10));
+            break;
+          case "order":
+            o[item] = o[item] === "asc" ? "" : "rev";
+            break;
+          case "type":
+            if (o[item] && o[item].toLowerCase() === "union") {
+              o[item] = "union";
+            } else {
+              o[item] = "inter";
+            }
+        }
+        switch (item) {
+          case "bucket":
             o[item] = o[item].toString();
             if (!this._VALID[item].test(o[item])) {
               this._handleError(cb, "invalidFormat", {
@@ -377,12 +401,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             }
             break;
           case "id":
-            if (!o[item]) {
-              this._handleError(cb, "missingParameter", {
-                item: item
-              });
-              return false;
-            }
             o[item] = o[item].toString();
             if (!o[item].length) {
               this._handleError(cb, "missingParameter", {
@@ -392,7 +410,10 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             }
             break;
           case "score":
-            o[item] = parseInt(o[item] || 0, 10);
+          case "limit":
+          case "offset":
+          case "withscores":
+          case "amount":
             if (_.isNaN(o[item])) {
               this._handleError(cb, "invalidFormat", {
                 item: item
@@ -401,12 +422,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             }
             break;
           case "tags":
-            if (!o[item]) {
-              this._handleError(cb, "missingParameter", {
-                item: item
-              });
-              return false;
-            }
             if (!_.isArray(o[item])) {
               this._handleError(cb, "invalidFormat", {
                 item: item

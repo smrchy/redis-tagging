@@ -170,16 +170,9 @@ class RedisTagging
 	# * `type` (String) *optional* "inter", "union" Default: "inter"
 	#
 	tags: (options, cb) =>
-		if @_validate(options, ["bucket", "tags"], cb) is false
+		if @_validate(options, ["bucket", "tags", "offset", "limit", "withscores", "type", "order"], cb) is false
 			return
 		ns = @redisns + options.bucket
-		options = 
-			tags: options.tags,
-			limit: Number(options.limit or 100)
-			offset: Number(options.offset or 0)
-			withscores: Number(options.withscores) or 0
-			order: if options.order is "asc" then "" else "rev"
-			type: (options.type or "inter").toLowerCase()
 			
 		prefix = ns + ':TAGS:'
 		# The last element to get
@@ -256,8 +249,10 @@ class RedisTagging
 	# * `amount` (Number) *optional* Default=0 (0 returns all)
 	#
 	toptags: (options, cb) =>
+		if @_validate(options, ["bucket", "amount"], cb) is false
+			return
 		ns = @redisns + options.bucket
-		options.amount = Math.abs(options.amount or 0) - 1
+		options.amount = options.amount - 1
 		rediskey = ns + ':TAGCOUNT'
 		mc = [
 			["zcard", rediskey]
@@ -307,6 +302,8 @@ class RedisTagging
 	# * `bucket`(String)
 	#
 	removebucket: (options, cb) =>
+		if @_validate(options, ["bucket"], cb) is false
+			return
 		@redis.keys @redisns + options.bucket + '*', (err, resp) =>
 			if err
 				@_handleError(cb, err)
@@ -367,34 +364,43 @@ class RedisTagging
      
 	_validate: (o, items, cb) ->
 		for item in items
+			# General checks
 			switch item
-				when "bucket"
+				when "bucket", "id", "tags"
 					if not o[item]
 						@_handleError(cb, "missingParameter", {item:item})
 						return false
+				when "score"
+					o[item] = parseInt(o[item] or 0, 10)
+				when "limit"
+					o[item] = Math.abs(parseInt(o[item] or 100, 10))
+				when "offset", "withscores", "amount"
+					o[item] = Math.abs(parseInt(o[item] or 0, 10))
+				when "order"
+					o[item] = if o[item] is "asc" then "" else "rev"
+				when "type"
+					if o[item] and o[item].toLowerCase() is "union"
+						o[item] = "union"
+					else
+						o[item] = "inter"
+						
+
+			switch item
+				when "bucket"
 					o[item] = o[item].toString()
 					if not @_VALID[item].test(o[item])
 						@_handleError(cb, "invalidFormat", {item:item})
 						return false
 				when "id"
-					if not o[item]
-						@_handleError(cb, "missingParameter", {item:item})
-						return false
 					o[item] = o[item].toString()
 					if not o[item].length
 						@_handleError(cb, "missingParameter", {item:item})
 						return false
-				when "score"
-					# set score to default 0 and make in int out of it
-					o[item] = parseInt(o[item] or 0, 10)
-					# bail if score is NaN
+				when "score", "limit", "offset", "withscores", "amount"
 					if _.isNaN(o[item])
 						@_handleError(cb, "invalidFormat", {item:item})
 						return false
 				when "tags"
-					if not o[item]
-						@_handleError(cb, "missingParameter", {item:item})
-						return false
 					if not _.isArray(o[item]) 
 						@_handleError(cb, "invalidFormat", {item:item})
 						return false
