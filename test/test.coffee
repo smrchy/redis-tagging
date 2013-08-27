@@ -22,13 +22,49 @@ describe 'Redis-Tagging Test', ->
 		return
 
 	describe 'Basics', ->
+		it 'Set tags for an item with non numeric score: FAILS', (done) ->
+			rt.set {bucket: bucket1, id: "123", score: "dfgs", tags: ["just","testing"]}, (err, resp) ->
+				err.message.should.equal("Invalid score format")
+				done()
+				return
+			return
+
+		it 'Set tags for an item with tags missing: FAILS', (done) ->
+			rt.set {bucket: bucket1, id: "123"}, (err, resp) ->
+				err.message.should.equal("No tags supplied")
+				done()
+				return
+			return
+
+		it 'Set tags for an item with tags not being an array: FAILS', (done) ->
+			rt.set {bucket: bucket1, id: "123", tags: "string..."}, (err, resp) ->
+				err.message.should.equal("Invalid tags format")
+				done()
+				return
+			return
+
 		it 'Set tags for an item "123"', (done) ->
-			rt.set {bucket: bucket1, id: "123", score: 10, tags: ["just","testing"]}, (err, resp) ->
+			rt.set {bucket: bucket1, id: "123", tags: ["just","testing"]}, (err, resp) ->
 				should.not.exist(err)
 				resp.should.equal(true)
 				done()
 				return
 			return
+
+		it 'Get tags without supplying an id', (done) ->
+			rt.get {bucket: bucket1}, (err, resp) ->
+				err.message.should.equal("No id supplied")
+				done()
+				return
+			return
+
+		it 'Get tags without supplying a bucket or id', (done) ->
+			rt.get {}, (err, resp) ->
+				err.message.should.equal("No bucket supplied")
+				done()
+				return
+			return
+
 
 		it 'Get tags for this item "123"', (done) ->
 			rt.get {bucket: bucket1, id: "123"}, (err, resp) ->

@@ -39,6 +39,8 @@ class RedisTagging
 
 		@redis = RedisInst.createClient(port, host)
 
+		@_initErrors()
+
 
 	# ## Get
 	#
@@ -50,6 +52,8 @@ class RedisTagging
 	# * `id` (String)
 	#
 	get: (options, cb) =>
+		if @_validate(options, ["bucket", "id"], cb) is false
+			return
 		ns = @redisns + options.bucket
 		@redis.smembers "#{ns}:ID:#{options.id}", (err, resp) =>
 			if err
@@ -76,8 +80,9 @@ class RedisTagging
 	# Returns `true` when the item was set.
 	#
 	set: (options, cb) =>
+		if @_validate(options, ["bucket", "id", "score", "tags"], cb) is false
+			return
 		ns = @redisns + options.bucket
-		options.score = options.score or 0
 		id_index = ns + ':ID:' + options.id
 		# First delete this ID from the DB. We will recreate it from scratch
 		@_deleteID ns, options.id, (mc) =>
@@ -110,6 +115,8 @@ class RedisTagging
 	# Returns `true` even if that id did not exist.
 	#
 	remove: (options, cb) =>
+		if @_validate(options, ["bucket", "id"], cb) is false
+			return
 		ns = @redisns + options.bucket
 		@_deleteID ns, options.id, (mc) =>
 			if not mc.length
@@ -137,6 +144,8 @@ class RedisTagging
 	# Returns an array of item ids
 	#
 	allids: (options, cb) =>
+		if @_validate(options, ["bucket"], cb) is false
+			return
 		ns = @redisns + options.bucket
 		@redis.smembers ns + ":IDS", (err, resp) =>
 			if err
@@ -161,6 +170,8 @@ class RedisTagging
 	# * `type` (String) *optional* "inter", "union" Default: "inter"
 	#
 	tags: (options, cb) =>
+		if @_validate(options, ["bucket", "tags"], cb) is false
+			return
 		ns = @redisns + options.bucket
 		options = 
 			tags: options.tags,
@@ -351,8 +362,49 @@ class RedisTagging
 			@_ERRORS[key] = _.template(msg)
 		return
 
+	_VALID:
+		bucket:	/^([a-zA-Z0-9_-]){1,80}$/
+     
+	_validate: (o, items, cb) ->
+		for item in items
+			switch item
+				when "bucket"
+					if not o[item]
+						@_handleError(cb, "missingParameter", {item:item})
+						return false
+					o[item] = o[item].toString()
+					if not @_VALID[item].test(o[item])
+						@_handleError(cb, "invalidFormat", {item:item})
+						return false
+				when "id"
+					if not o[item]
+						@_handleError(cb, "missingParameter", {item:item})
+						return false
+					o[item] = o[item].toString()
+					if not o[item].length
+						@_handleError(cb, "missingParameter", {item:item})
+						return false
+				when "score"
+					# set score to default 0 and make in int out of it
+					o[item] = parseInt(o[item] or 0, 10)
+					# bail if score is NaN
+					if _.isNaN(o[item])
+						@_handleError(cb, "invalidFormat", {item:item})
+						return false
+				when "tags"
+					if not o[item]
+						@_handleError(cb, "missingParameter", {item:item})
+						return false
+					if not _.isArray(o[item]) 
+						@_handleError(cb, "invalidFormat", {item:item})
+						return false
+
+		return o
+
 
 	ERRORS:
 		"missingTags": "No tags supplied"
+		"missingParameter": "No <%= item %> supplied"
+		"invalidFormat": "Invalid <%= item %> format"
 		
 module.exports = RedisTagging

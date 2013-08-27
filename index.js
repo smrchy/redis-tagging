@@ -44,11 +44,15 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       port = options.port || 6379;
       host = options.host || "127.0.0.1";
       this.redis = RedisInst.createClient(port, host);
+      this._initErrors();
     }
 
     RedisTagging.prototype.get = function(options, cb) {
       var ns,
         _this = this;
+      if (this._validate(options, ["bucket", "id"], cb) === false) {
+        return;
+      }
       ns = this.redisns + options.bucket;
       this.redis.smembers("" + ns + ":ID:" + options.id, function(err, resp) {
         var tag, tags;
@@ -72,8 +76,10 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     RedisTagging.prototype.set = function(options, cb) {
       var id_index, ns,
         _this = this;
+      if (this._validate(options, ["bucket", "id", "score", "tags"], cb) === false) {
+        return;
+      }
       ns = this.redisns + options.bucket;
-      options.score = options.score || 0;
       id_index = ns + ':ID:' + options.id;
       this._deleteID(ns, options.id, function(mc) {
         var tag, _i, _len, _ref;
@@ -100,6 +106,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     RedisTagging.prototype.remove = function(options, cb) {
       var ns,
         _this = this;
+      if (this._validate(options, ["bucket", "id"], cb) === false) {
+        return;
+      }
       ns = this.redisns + options.bucket;
       this._deleteID(ns, options.id, function(mc) {
         if (!mc.length) {
@@ -119,6 +128,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     RedisTagging.prototype.allids = function(options, cb) {
       var ns,
         _this = this;
+      if (this._validate(options, ["bucket"], cb) === false) {
+        return;
+      }
       ns = this.redisns + options.bucket;
       this.redis.smembers(ns + ":IDS", function(err, resp) {
         if (err) {
@@ -132,6 +144,9 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     RedisTagging.prototype.tags = function(options, cb) {
       var lastelement, mc, ns, prefix, resultkey, rndkey, tag, tagsresult, _keys,
         _this = this;
+      if (this._validate(options, ["bucket", "tags"], cb) === false) {
+        return;
+      }
       ns = this.redisns + options.bucket;
       options = {
         tags: options.tags,
@@ -337,8 +352,76 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       }
     };
 
+    RedisTagging.prototype._VALID = {
+      bucket: /^([a-zA-Z0-9_-]){1,80}$/
+    };
+
+    RedisTagging.prototype._validate = function(o, items, cb) {
+      var item, _i, _len;
+      for (_i = 0, _len = items.length; _i < _len; _i++) {
+        item = items[_i];
+        switch (item) {
+          case "bucket":
+            if (!o[item]) {
+              this._handleError(cb, "missingParameter", {
+                item: item
+              });
+              return false;
+            }
+            o[item] = o[item].toString();
+            if (!this._VALID[item].test(o[item])) {
+              this._handleError(cb, "invalidFormat", {
+                item: item
+              });
+              return false;
+            }
+            break;
+          case "id":
+            if (!o[item]) {
+              this._handleError(cb, "missingParameter", {
+                item: item
+              });
+              return false;
+            }
+            o[item] = o[item].toString();
+            if (!o[item].length) {
+              this._handleError(cb, "missingParameter", {
+                item: item
+              });
+              return false;
+            }
+            break;
+          case "score":
+            o[item] = parseInt(o[item] || 0, 10);
+            if (_.isNaN(o[item])) {
+              this._handleError(cb, "invalidFormat", {
+                item: item
+              });
+              return false;
+            }
+            break;
+          case "tags":
+            if (!o[item]) {
+              this._handleError(cb, "missingParameter", {
+                item: item
+              });
+              return false;
+            }
+            if (!_.isArray(o[item])) {
+              this._handleError(cb, "invalidFormat", {
+                item: item
+              });
+              return false;
+            }
+        }
+      }
+      return o;
+    };
+
     RedisTagging.prototype.ERRORS = {
-      "missingTags": "No tags supplied"
+      "missingTags": "No tags supplied",
+      "missingParameter": "No <%= item %> supplied",
+      "invalidFormat": "Invalid <%= item %> format"
     };
 
     return RedisTagging;

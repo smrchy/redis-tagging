@@ -23,15 +23,58 @@
       done();
     });
     describe('Basics', function() {
+      it('Set tags for an item with non numeric score: FAILS', function(done) {
+        rt.set({
+          bucket: bucket1,
+          id: "123",
+          score: "dfgs",
+          tags: ["just", "testing"]
+        }, function(err, resp) {
+          err.message.should.equal("Invalid score format");
+          done();
+        });
+      });
+      it('Set tags for an item with tags missing: FAILS', function(done) {
+        rt.set({
+          bucket: bucket1,
+          id: "123"
+        }, function(err, resp) {
+          err.message.should.equal("No tags supplied");
+          done();
+        });
+      });
+      it('Set tags for an item with tags not being an array: FAILS', function(done) {
+        rt.set({
+          bucket: bucket1,
+          id: "123",
+          tags: "string..."
+        }, function(err, resp) {
+          err.message.should.equal("Invalid tags format");
+          done();
+        });
+      });
       it('Set tags for an item "123"', function(done) {
         rt.set({
           bucket: bucket1,
           id: "123",
-          score: 10,
           tags: ["just", "testing"]
         }, function(err, resp) {
           should.not.exist(err);
           resp.should.equal(true);
+          done();
+        });
+      });
+      it('Get tags without supplying an id', function(done) {
+        rt.get({
+          bucket: bucket1
+        }, function(err, resp) {
+          err.message.should.equal("No id supplied");
+          done();
+        });
+      });
+      it('Get tags without supplying a bucket or id', function(done) {
+        rt.get({}, function(err, resp) {
+          err.message.should.equal("No bucket supplied");
           done();
         });
       });
