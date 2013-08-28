@@ -31,9 +31,7 @@ _ = require "underscore"
 class RedisTagging
 
 	constructor: (options={}) ->
-		@redisns = options.namespace or "rt"
-		@redisns = @redisns + ":"
-		
+		@redisns = (options.nsprefix or "rt") + ":"
 		port = options.port or 6379
 		host = options.host or "127.0.0.1"
 
