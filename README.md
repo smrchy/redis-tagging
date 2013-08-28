@@ -40,17 +40,25 @@ Here is how Redis-Tagging will make the tagging of items in external databases f
 So with little changes you will end up with a lot less code, tables and need to maintain a complex structure just to support fast tagging.
 
 
+## REST interface
+
+If you want to use the REST interface to access Redis Tagging from a non NodeJS application please have a look at: [REST Tagging](https://github.com/smrchy/rest-tagging)
+
 ## Installation
 
 `npm install redis-tagging`
 
 ## Usage
 
-**Note:** If you want to use the REST interface to access Redis Tagging from a non NodeJS application please have a look at: [REST Tagging](https://github.com/smrchy/rest-tagging)
+Parameters for RedisTagging via an *options* object:
+
+* `host` (String): *optional (Default: "127.0.0.1")* The Redis server
+* `port` (Number): *optional (Default: 6379)* The Redis port
+* `nsprefix` (String): *optional (Default: "rt")* The namespace prefix used for all keys created by Redis Tagging
 
 ```javascript
 var RedisTagging = require("redis-tagging");
-var rt = new RedisTagging();
+var rt = new RedisTagging({host: "127.0.0.1", port: 6379, nsprefix: "rt"} );
 ```
 
 **Important:** Redis-Tagging works with items from your database (whatever you might use). Its purpose is to make tag based lookups fast and easy.  
