@@ -211,8 +211,7 @@ describe 'Redis-Tagging Test', ->
 		it 'Remove bucket "test"', (done) ->
 			rt.removebucket {bucket: bucket1}, (err, resp) ->
 				should.not.exist(err)
-				resp.ok.should.equal(true)
-				resp.keys.length.should.equal(9)
+				resp.should.equal(9)
 				done()
 				return
 			return

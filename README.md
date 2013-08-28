@@ -215,7 +215,7 @@ rt.removebucket(
 		bucket: "concerts"
 	},
 	function (err, resp) {
-		// resp contains an object with details about the removal
+		// resp will be the number of keys removed
 	}
 );
 ```
@@ -232,10 +232,6 @@ rt.removebucket(
 - Use the IDs to get the actual records from your DB and display them as usual.
 - Enjoy.
 
-## Todo
-
-* better input validation for all methods
-* more tests
 
 ## License 
 

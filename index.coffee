@@ -292,16 +292,26 @@ class RedisTagging
 	removebucket: (options, cb) =>
 		if @_validate(options, ["bucket"], cb) is false
 			return
-		@redis.keys @redisns + options.bucket + '*', (err, resp) =>
+		ns = @redisns + options.bucket
+		mc = [
+			["smembers", ns + ":IDS"]
+			["zrange", ns + ":TAGCOUNT", 0, -1]
+		]
+		@redis.multi(mc).exec (err, resp) =>
 			if err
 				@_handleError(cb, err)
 				return
-			if resp.length
-				@redis.del resp, (err, resp2) =>
-					cb(null, {ok: true, keys: resp})
-					return
+			rkeys = [
+				ns + ":IDS"
+				ns + ":TAGCOUNT"
+			]
+			for e in resp[0]
+				rkeys.push(ns + ":ID:" + e)
+			for e in resp[1]
+				rkeys.push(ns + ":TAGS:" + e)
+			@redis.del rkeys, (err, resp2) =>
+				cb(null, resp2)
 				return
-			cb(null, {ok: true, keys: []})
 			return
 		return
 

@@ -279,28 +279,35 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     };
 
     RedisTagging.prototype.removebucket = function(options, cb) {
-      var _this = this;
+      var mc, ns,
+        _this = this;
 
       if (this._validate(options, ["bucket"], cb) === false) {
         return;
       }
-      this.redis.keys(this.redisns + options.bucket + '*', function(err, resp) {
+      ns = this.redisns + options.bucket;
+      mc = [["smembers", ns + ":IDS"], ["zrange", ns + ":TAGCOUNT", 0, -1]];
+      this.redis.multi(mc).exec(function(err, resp) {
+        var e, rkeys, _i, _j, _len, _len1, _ref, _ref1;
+
         if (err) {
           _this._handleError(cb, err);
           return;
         }
-        if (resp.length) {
-          _this.redis.del(resp, function(err, resp2) {
-            cb(null, {
-              ok: true,
-              keys: resp
-            });
-          });
-          return;
+        rkeys = [ns + ":IDS", ns + ":TAGCOUNT"];
+        _ref = resp[0];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          e = _ref[_i];
+          rkeys.push(ns + ":ID:" + e);
         }
-        cb(null, {
-          ok: true,
-          keys: []
+        _ref1 = resp[1];
+        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+          e = _ref1[_j];
+          rkeys.push(ns + ":TAGS:" + e);
+        }
+        _this.redis.del(rkeys, function(err, resp2) {
+          console.log(resp2);
+          cb(null, resp2);
         });
       });
     };
