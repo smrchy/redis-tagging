@@ -11,6 +11,7 @@ Fast and simple tagging of (sorted) items.
 - **Fast and efficient paging** over thousands of results with support of `limit`, `offset`.
 - Namespaces to keep multiple "buckets" of tags on the same server.
 - Counters for each tag in a namespace. 
+- REST interface via [REST Tagging](https://github.com/smrchy/rest-tagging)
 - [Test coverage](http://travis-ci.org/smrchy/redis-tagging)
 
 ## A short example
@@ -44,6 +45,8 @@ So with little changes you will end up with a lot less code, tables and need to 
 `npm install redis-tagging`
 
 ## Usage
+
+**Note:** If you want to use the REST interface to access Redis Tagging from a non NodeJS application please have a look at: [REST Tagging](https://github.com/smrchy/rest-tagging)
 
 ```javascript
 var RedisTagging = require("redis-tagging");
