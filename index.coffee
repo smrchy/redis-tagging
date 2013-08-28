@@ -115,23 +115,11 @@ class RedisTagging
 	# Returns `true` even if that id did not exist.
 	#
 	remove: (options, cb) =>
-		if @_validate(options, ["bucket", "id"], cb) is false
-			return
-		ns = @redisns + options.bucket
-		@_deleteID ns, options.id, (mc) =>
-			if not mc.length
-				cb(null, true)
-				return
-
-			@redis.multi(mc).exec (err, resp) =>
-				if err
-					@_handleError(cb, err)
-					return
-				cb(null, true)
-				return
-			return
+		options.tags = []
+		
+		@set(options, cb)
+		
 		return
-
 	
 	# ## AllIDs
 	#
