@@ -255,7 +255,7 @@
           bucket: bucket1
         }, function(err, resp) {
           should.not.exist(err);
-          resp.should.equal(9);
+          resp.should.equal(true);
           done();
         });
       });

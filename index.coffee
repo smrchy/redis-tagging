@@ -309,8 +309,8 @@ class RedisTagging
 				rkeys.push(ns + ":ID:" + e)
 			for e in resp[1]
 				rkeys.push(ns + ":TAGS:" + e)
-			@redis.del rkeys, (err, resp2) =>
-				cb(null, resp2)
+			@redis.del rkeys, (err, resp) =>
+				cb(null, true)
 				return
 			return
 		return

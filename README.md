@@ -215,7 +215,9 @@ rt.removebucket(
 		bucket: "concerts"
 	},
 	function (err, resp) {
-		// resp will be the number of keys removed
+		if (resp === true) {
+			// bucket was removed
+		}
 	}
 );
 ```

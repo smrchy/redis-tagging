@@ -305,8 +305,8 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
           e = _ref1[_j];
           rkeys.push(ns + ":TAGS:" + e);
         }
-        _this.redis.del(rkeys, function(err, resp2) {
-          cb(null, resp2);
+        _this.redis.del(rkeys, function(err, resp) {
+          cb(null, true);
         });
       });
     };
