@@ -113,7 +113,7 @@ rt.get(
 Note: This is the same as using `set` with an empty array of tags.
 
 ```javascript
-r.remove(
+rt.remove(
 	{
 		bucket: "concerts",
 		id: "itm123"
@@ -129,7 +129,7 @@ r.remove(
 ### Get all item ids in a bucket
 
 ```javascript
-r.allids(
+rt.allids(
 	{
 		bucket: "concerts"
 	}
