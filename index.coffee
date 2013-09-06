@@ -165,6 +165,15 @@ class RedisTagging
 		lastelement = options.offset + options.limit - 1
 		mc = []
 
+		# Bail if no tags supplied
+		if options.tags.length is 0
+			cb( null,
+				total_items: 0
+				items: []
+				limit: options.limit
+				offset: options.offset
+			)
+			return
 		# Intersection and Union of multiple tags
 		if options.tags.length > 1
 
@@ -192,9 +201,6 @@ class RedisTagging
 
 		
 		# Now run the Redis query
-		if mc.length is 0
-			@_handleError(cb, "missingTags")
-			return
 		# Get the IDs
 		if options.limit > 0
 			tagsresult = [ 'z' + options.order + 'range', resultkey, options.offset, lastelement ]
@@ -405,7 +411,6 @@ class RedisTagging
 
 
 	ERRORS:
-		"missingTags": "No tags supplied"
 		"missingParameter": "No <%= item %> supplied"
 		"invalidFormat": "Invalid <%= item %> format"
 		

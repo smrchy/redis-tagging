@@ -133,6 +133,15 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       prefix = ns + ':TAGS:';
       lastelement = options.offset + options.limit - 1;
       mc = [];
+      if (options.tags.length === 0) {
+        cb(null, {
+          total_items: 0,
+          items: [],
+          limit: options.limit,
+          offset: options.offset
+        });
+        return;
+      }
       if (options.tags.length > 1) {
         rndkey = ns + (new Date().getTime()) + '_' + Math.floor(Math.random() * 9999999999);
         _keys = (function() {
@@ -154,10 +163,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         if (options.limit > 0) {
           resultkey = prefix + options.tags[0];
         }
-      }
-      if (mc.length === 0) {
-        this._handleError(cb, "missingTags");
-        return;
       }
       if (options.limit > 0) {
         tagsresult = ['z' + options.order + 'range', resultkey, options.offset, lastelement];
@@ -421,7 +426,6 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
     };
 
     RedisTagging.prototype.ERRORS = {
-      "missingTags": "No tags supplied",
       "missingParameter": "No <%= item %> supplied",
       "invalidFormat": "Invalid <%= item %> format"
     };

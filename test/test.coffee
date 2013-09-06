@@ -1,5 +1,6 @@
 should = require "should"
 RedisTagging = require "../index" 
+_ = require "underscore"
 
 describe 'Redis-Tagging Test', ->
 	rt = null
@@ -139,6 +140,17 @@ describe 'Redis-Tagging Test', ->
 				resp.length.should.equal(2)
 				resp.should.include("123")
 				resp.should.include("456")
+				done()
+				return
+			return
+
+		it 'Get all IDs for the tag []: []', (done) ->
+			rt.tags {bucket: bucket1, tags:[]}, (err, resp) ->
+				should.not.exist(err)
+				resp.total_items.should.equal(0)
+				resp.limit.should.equal(100)
+				resp.offset.should.equal(0)
+				resp.items.should.be.empty
 				done()
 				return
 			return
