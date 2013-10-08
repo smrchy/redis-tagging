@@ -23,10 +23,10 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
   _ = require("underscore");
 
   RedisTagging = (function() {
-    function RedisTagging(options) {
-      var host, port;
-      if (options == null) {
-        options = {};
+    function RedisTagging(o) {
+      var host, options, port, _ref, _ref1;
+      if (o == null) {
+        o = {};
       }
       this._initErrors = __bind(this._initErrors, this);
       this._handleError = __bind(this._handleError, this);
@@ -39,10 +39,15 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
       this.remove = __bind(this.remove, this);
       this.set = __bind(this.set, this);
       this.get = __bind(this.get, this);
-      this.redisns = (options.nsprefix || "rt") + ":";
-      port = options.port || 6379;
-      host = options.host || "127.0.0.1";
-      this.redis = RedisInst.createClient(port, host);
+      this.redisns = (o.nsprefix || "rt") + ":";
+      port = o.port || 6379;
+      host = o.host || "127.0.0.1";
+      options = o.options || {};
+      if (((_ref = o.client) != null ? (_ref1 = _ref.constructor) != null ? _ref1.name : void 0 : void 0) === "RedisClient") {
+        this.redis = o.client;
+      } else {
+        this.redis = RedisInst.createClient(port, host, options);
+      }
       this._initErrors();
     }
 

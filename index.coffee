@@ -26,16 +26,22 @@ _ = require "underscore"
 #
 #	* `port`: *optional* Default: 6379. The Redis port.
 #	* `host`, *optional* Default: "127.0.0.1". The Redis host.
+#   * `options`, *optional* Default: {}. Additional options. 
 #	* `nsprefix`: *optional* Default: "rt". The namespace prefix for all Redis keys used by this module.
+#	* `client`: *optional* An external RedisClient object which will be used for the connection.
 #
 class RedisTagging
 
-	constructor: (options={}) ->
-		@redisns = (options.nsprefix or "rt") + ":"
-		port = options.port or 6379
-		host = options.host or "127.0.0.1"
+	constructor: (o={}) ->
+		@redisns = (o.nsprefix or "rt") + ":"
+		port = o.port or 6379
+		host = o.host or "127.0.0.1"
+		options = o.options or {}
 
-		@redis = RedisInst.createClient(port, host)
+		if o.client?.constructor?.name is "RedisClient"
+			@redis = o.client
+		else
+			@redis = RedisInst.createClient(port, host, options)
 
 		@_initErrors()
 

@@ -50,11 +50,13 @@ If you want to use the REST interface to access Redis Tagging from a non NodeJS 
 
 ## Usage
 
-Parameters for RedisTagging via an *options* object:
+Parameters for RedisTagging:
 
 * `host` (String): *optional (Default: "127.0.0.1")* The Redis server
 * `port` (Number): *optional (Default: 6379)* The Redis port
+* `options`, *optional* Default: {}. Additional options. See: https://github.com/mranney/node_redis#rediscreateclientport-host-options
 * `nsprefix` (String): *optional (Default: "rt")* The namespace prefix used for all keys created by Redis Tagging
+* `client`: *optional* An external RedisClient object which will be used for the connection.
 
 ```javascript
 var RedisTagging = require("redis-tagging");
@@ -245,6 +247,9 @@ rt.removebucket(
 - Use the IDs to get the actual records from your DB and display them as usual.
 - Enjoy.
 
+## CHANGELOG
+
+See https://github.com/smrchy/redis-tagging/blob/master/CHANGELOG.md
 
 ## License 
 
