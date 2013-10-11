@@ -1,7 +1,7 @@
 {
     "name": "redis-tagging",
     "description": "Fast and simple tagging of (sorted) items",
-    "version": "1.1.4",
+    "version": "1.1.5",
     "author": "P. Liess <smrchy+npm@gmail.com>",
     "engines": {
 		"node": "> 0.8.10"
@@ -10,9 +10,11 @@
 		"test": "mocha ./test/test.js"
 	},
 	"dependencies": {
-		"hiredis": "*",
 		"redis": "*",
 		"underscore": "*"
+	},
+	"optionalDependencies": {
+		"hiredis": "*"
 	},
 	"devDependencies": {
 		"mocha": "*",
