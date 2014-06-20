@@ -70,8 +70,8 @@ describe 'Redis-Tagging Test', ->
 		it 'Get tags for this item "123"', (done) ->
 			rt.get {bucket: bucket1, id: "123"}, (err, resp) ->
 				should.not.exist(err)
-				resp.should.include('just')
-				resp.should.include('testing')
+				resp.should.containEql('just')
+				resp.should.containEql('testing')
 				done()
 				return
 			return
@@ -128,8 +128,8 @@ describe 'Redis-Tagging Test', ->
 		it 'Get tags for this item "456"', (done) ->
 			rt.get {bucket: bucket1, id: "456"}, (err, resp) ->
 				should.not.exist(err)
-				resp.should.include('äöüÖÄÜ§$%& ,.-+#áéóíáà~')
-				resp.should.include('   testing   ')
+				resp.should.containEql('äöüÖÄÜ§$%& ,.-+#áéóíáà~')
+				resp.should.containEql('   testing   ')
 				done()
 				return
 			return
@@ -138,8 +138,8 @@ describe 'Redis-Tagging Test', ->
 			rt.allids {bucket: bucket1}, (err, resp) ->
 				should.not.exist(err)
 				resp.length.should.equal(2)
-				resp.should.include("123")
-				resp.should.include("456")
+				resp.should.containEql("123")
+				resp.should.containEql("456")
 				done()
 				return
 			return
@@ -161,7 +161,7 @@ describe 'Redis-Tagging Test', ->
 				resp.total_items.should.equal(1)
 				resp.limit.should.equal(100)
 				resp.offset.should.equal(0)
-				resp.items.should.include("123")
+				resp.items.should.containEql("123")
 				done()
 				return
 			return
@@ -172,8 +172,8 @@ describe 'Redis-Tagging Test', ->
 				resp.total_items.should.equal(2)
 				resp.limit.should.equal(100)
 				resp.offset.should.equal(0)
-				resp.items.should.include("123")
-				resp.items.should.include("456")
+				resp.items.should.containEql("123")
+				resp.items.should.containEql("456")
 				done()
 				return
 			return
@@ -184,7 +184,7 @@ describe 'Redis-Tagging Test', ->
 				resp.total_items.should.equal(1)
 				resp.limit.should.equal(100)
 				resp.offset.should.equal(0)
-				resp.items.should.include("123")
+				resp.items.should.containEql("123")
 				done()
 				return
 			return
@@ -195,7 +195,7 @@ describe 'Redis-Tagging Test', ->
 				resp.total_items.should.equal(2)
 				resp.limit.should.equal(100)
 				resp.offset.should.equal(0)
-				resp.items.should.include("123","456")
+				resp.items.should.containEql("123","456")
 				done()
 				return
 			return
@@ -213,7 +213,7 @@ describe 'Redis-Tagging Test', ->
 		it 'Get all buckets', (done) ->
 			rt.buckets (err, resp) ->
 				should.not.exist(err)
-				resp.should.include("test")
+				resp.should.containEql("test")
 				done()
 				return
 			return

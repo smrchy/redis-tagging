@@ -86,8 +86,8 @@
           id: "123"
         }, function(err, resp) {
           should.not.exist(err);
-          resp.should.include('just');
-          resp.should.include('testing');
+          resp.should.containEql('just');
+          resp.should.containEql('testing');
           done();
         });
       });
@@ -160,8 +160,8 @@
           id: "456"
         }, function(err, resp) {
           should.not.exist(err);
-          resp.should.include('äöüÖÄÜ§$%& ,.-+#áéóíáà~');
-          resp.should.include('   testing   ');
+          resp.should.containEql('äöüÖÄÜ§$%& ,.-+#áéóíáà~');
+          resp.should.containEql('   testing   ');
           done();
         });
       });
@@ -171,8 +171,8 @@
         }, function(err, resp) {
           should.not.exist(err);
           resp.length.should.equal(2);
-          resp.should.include("123");
-          resp.should.include("456");
+          resp.should.containEql("123");
+          resp.should.containEql("456");
           done();
         });
       });
@@ -198,7 +198,7 @@
           resp.total_items.should.equal(1);
           resp.limit.should.equal(100);
           resp.offset.should.equal(0);
-          resp.items.should.include("123");
+          resp.items.should.containEql("123");
           done();
         });
       });
@@ -211,8 +211,8 @@
           resp.total_items.should.equal(2);
           resp.limit.should.equal(100);
           resp.offset.should.equal(0);
-          resp.items.should.include("123");
-          resp.items.should.include("456");
+          resp.items.should.containEql("123");
+          resp.items.should.containEql("456");
           done();
         });
       });
@@ -225,7 +225,7 @@
           resp.total_items.should.equal(1);
           resp.limit.should.equal(100);
           resp.offset.should.equal(0);
-          resp.items.should.include("123");
+          resp.items.should.containEql("123");
           done();
         });
       });
@@ -239,7 +239,7 @@
           resp.total_items.should.equal(2);
           resp.limit.should.equal(100);
           resp.offset.should.equal(0);
-          resp.items.should.include("123", "456");
+          resp.items.should.containEql("123", "456");
           done();
         });
       });
@@ -258,7 +258,7 @@
       it('Get all buckets', function(done) {
         rt.buckets(function(err, resp) {
           should.not.exist(err);
-          resp.should.include("test");
+          resp.should.containEql("test");
           done();
         });
       });
