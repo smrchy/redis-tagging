@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.2.1
+
+* Switched from Underscore to LoDash
+* Don't issue empty multi statements in special cases (issue #2)
+
 ## 1.1.5
 
 * Make `hiredis` optional.

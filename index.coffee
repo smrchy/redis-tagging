@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 ###
 
 RedisInst = require "redis"
-_ = require "underscore"
+_ = require "lodash"
 
 # # Redis Tagging
 #
@@ -97,6 +97,9 @@ class RedisTagging
 				mc.push( [ 'zadd', ns  + ':TAGS:' + tag, options.score, options.id ] )
 			if options.tags.length
 				mc.push( [ 'sadd', ns + ':IDS', options.id ] )
+			if mc.length is 0
+				cb(null, true)
+				return
 			@redis.multi(mc).exec (err, resp) =>
 				if err
 					@_handleError(cb, err)

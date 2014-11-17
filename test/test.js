@@ -6,7 +6,7 @@
 
   RedisTagging = require("../index");
 
-  _ = require("underscore");
+  _ = require("lodash");
 
   describe('Redis-Tagging Test', function() {
     var bucket1, bucket2, rt;
@@ -52,6 +52,17 @@
           tags: "string..."
         }, function(err, resp) {
           err.message.should.equal("Invalid tags format");
+          done();
+        });
+      });
+      it('Set tags for an item "123" but do not supply a single tag', function(done) {
+        rt.set({
+          bucket: bucket1,
+          id: "123",
+          tags: []
+        }, function(err, resp) {
+          should.not.exist(err);
+          resp.should.equal(true);
           done();
         });
       });

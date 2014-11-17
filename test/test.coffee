@@ -1,6 +1,6 @@
 should = require "should"
 RedisTagging = require "../index" 
-_ = require "underscore"
+_ = require "lodash"
 
 describe 'Redis-Tagging Test', ->
 	rt = null
@@ -40,6 +40,14 @@ describe 'Redis-Tagging Test', ->
 		it 'Set tags for an item with tags not being an array: FAILS', (done) ->
 			rt.set {bucket: bucket1, id: "123", tags: "string..."}, (err, resp) ->
 				err.message.should.equal("Invalid tags format")
+				done()
+				return
+			return
+
+		it 'Set tags for an item "123" but do not supply a single tag', (done) ->
+			rt.set {bucket: bucket1, id: "123", tags: []}, (err, resp) ->
+				should.not.exist(err)
+				resp.should.equal(true)
 				done()
 				return
 			return

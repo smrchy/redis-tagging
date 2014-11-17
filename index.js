@@ -20,7 +20,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
   RedisInst = require("redis");
 
-  _ = require("underscore");
+  _ = require("lodash");
 
   RedisTagging = (function() {
     function RedisTagging(o) {
@@ -96,6 +96,10 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
         }
         if (options.tags.length) {
           mc.push(['sadd', ns + ':IDS', options.id]);
+        }
+        if (mc.length === 0) {
+          cb(null, true);
+          return;
         }
         _this.redis.multi(mc).exec(function(err, resp) {
           if (err) {
