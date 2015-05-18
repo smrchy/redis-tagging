@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 1.2.2
+
+* Fix: For incorrect handling of `limit:0` with `tags` method
+* Test-Support for Node.js 0.12 and iojs
+* Minor doc changes
+* Added: LICENSE.md file
+
 ## 1.2.1
 
 * Switched from Underscore to LoDash

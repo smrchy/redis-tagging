@@ -251,68 +251,23 @@ rt.removebucket(
 
 See https://github.com/smrchy/redis-tagging/blob/master/CHANGELOG.md
 
+## Other projects
 
-## More NodeJS and Redis projects?
+|Name|Description|
+|:--|:--|
+|[**node-cache**](https://github.com/tcs-de/nodecache)|Simple and fast Node.js internal caching. Node internal in memory cache like memcached.|
+|[**rsmq**](https://github.com/smrchy/rsmq)|A lightweight message queue for Node.js that requires no dedicated queue server. Just a Redis server.|
+|[**redis-sessions**](https://github.com/smrchy/redis-sessions)|An advanced session store for Node.js and Redis|
+|[**rsmq-worker**](https://github.com/mpneuried/rsmq-worker)|Helper to implement a worker based on [RSMQ (Redis Simple Message Queue)](https://github.com/smrchy/rsmq).|
+|[**redis-notifications**](https://github.com/mpneuried/redis-notifications)|A Redis based notification engine. It implements the rsmq-worker to safely create notifications and recurring reports.|
+|[**task-queue-worker**](https://github.com/smrchy/task-queue-worker)|A powerful tool for background processing of tasks that are run by making standard http requests.|
+|[**obj-schema**](https://github.com/mpneuried/obj-schema)|Simple module to validate an object by a predefined schema|
+|[**connect-redis-sessions**](https://github.com/mpneuried/connect-redis-sessions)|A connect or express middleware to use [redis sessions](https://github.com/smrchy/redis-sessions) that lets you handle multiple sessions per user_id.|
+|[**systemhealth**](https://github.com/mpneuried/systemhealth)|Node module to run simple custom checks for your machine or it's connections. It will use [redis-heartbeat](https://github.com/mpneuried/redis-heartbeat) to send the current state to Redis.|
+|[**soyer**](https://github.com/mpneuried/soyer)|Soyer is small lib for serverside use of Google Closure Templates with node.js.|
+|[**grunt-soy-compile**](https://github.com/mpneuried/grunt-soy-compile)|Compile Goggle Closure Templates (SOY) templates including the handling of XLIFF language files.|
+|[**backlunr**](https://github.com/mpneuried/backlunr)|A solution to bring Backbone Collections together with the browser fulltext search engine Lunr.js|
 
-Check out my projects which are based on NodeJS and Redis as a datastore:
+## The MIT License
 
-### [RSMQ: Really Simple Message Queue](https://github.com/smrchy/rsmq)
-
-If you run a Redis server and currently use Amazon SQS or a similar message queue you might as well use this fast little replacement. **Using a shared Redis server multiple NodeJS processes can send / receive messages.**
-
-* Lightweight: **Just Redis**. Every client can send and receive messages via a shared Redis server. 
-* Guaranteed **delivery of a message to exactly one recipient** within a messages visibility timeout.
-* No security: **Like memcached**. Only for internal use in trusted environments.
-* Similar to Amazon SQS (with some differences)
-* Optional **RESTful interface** via [REST-rsmq](https://github.com/smrchy/rest-rsmq)
-* [and more...](https://github.com/smrchy/rsmq)
-
-
-### [Redis-Tagging](https://github.com/smrchy/redis-tagging)
-
-A NodeJS helper library to make tagging of items in any legacy database (SQL or NoSQL) easy and fast. Redis is used to store tag-item associations and to allow fast queries and paging over large sets of tagged items.
-
-* **Maintains order** of tagged items
-* **Unions** and **intersections** while maintaining the order
-* Counters for each tag
-* **Fast paging** over results with `limit` and `offset`
-* Optional **RESTful interface** via [REST-tagging](https://github.com/smrchy/rest-tagging)
-* [Read more...](https://github.com/smrchy/redis-tagging)
-
-
-### [Redis-Sessions](https://github.com/smrchy/redis-sessions)
-
-This is a NodeJS module to keep sessions in a Redis datastore and add some useful methods.
-
-The main purpose of this module is to **generalize sessions across application server platforms**. We use nginx reverse proxy to route parts of a website to a NodeJS server and other parts could be Python, .net, PHP, Coldfusion or Java servers. You can then use [rest-sessions](https://github.com/smrchy/rest-sessions) to access the same sessions on all app server via a REST interface.
-
-* Standard features: Set, update, delete a single session
-* Advanced features: List / delete all sessions, all sessions of a single UserID
-* Activity in the last *n* seconds
-* [and more...](https://github.com/smrchy/redis-sessions)
-
-
-## License 
-
-(The MIT License)
-
-Copyright (c) 2010 TCS &lt;dev (at) tcs.de&gt;
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-'Software'), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Please see the LICENSE.md file.
