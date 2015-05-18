@@ -374,7 +374,10 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
             o[item] = parseInt(o[item] || 0, 10);
             break;
           case "limit":
-            o[item] = Math.abs(parseInt(o[item] || 100, 10));
+            if (!_.isNumber(o[item]) || _.isNaN(o[item])) {
+              o[item] = 100;
+            }
+            o[item] = Math.abs(parseInt(o[item], 10));
             break;
           case "offset":
           case "withscores":

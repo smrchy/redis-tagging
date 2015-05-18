@@ -227,6 +227,18 @@
           done();
         });
       });
+      it('Get all IDs for the tag ["all"] with limit:0', function(done) {
+        rt.tags({
+          bucket: bucket1,
+          tags: ["all"],
+          limit: 0
+        }, function(err, resp) {
+          should.not.exist(err);
+          resp.total_items.should.equal(2);
+          resp.items.length.should.equal(0);
+          done();
+        });
+      });
       it('Get all IDs for the tag intersection ["all","testing"]: ["123"]', function(done) {
         rt.tags({
           bucket: bucket1,

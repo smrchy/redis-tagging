@@ -384,7 +384,9 @@ class RedisTagging
 				when "score"
 					o[item] = parseInt(o[item] or 0, 10)
 				when "limit"
-					o[item] = Math.abs(parseInt(o[item] or 100, 10))
+					if not _.isNumber(o[item]) or _.isNaN(o[item])
+						o[item] = 100
+					o[item] = Math.abs(parseInt(o[item], 10))
 				when "offset", "withscores", "amount"
 					o[item] = Math.abs(parseInt(o[item] or 0, 10))
 				when "order"

@@ -186,6 +186,15 @@ describe 'Redis-Tagging Test', ->
 				return
 			return
 
+		it 'Get all IDs for the tag ["all"] with limit:0', (done) ->
+			rt.tags {bucket: bucket1, tags:["all"], limit:0}, (err, resp) ->
+				should.not.exist(err)
+				resp.total_items.should.equal(2)
+				resp.items.length.should.equal(0)
+				done()
+				return
+			return
+
 		it 'Get all IDs for the tag intersection ["all","testing"]: ["123"]', (done) ->
 			rt.tags {bucket: bucket1, tags:["all","testing"]}, (err, resp) ->
 				should.not.exist(err)
