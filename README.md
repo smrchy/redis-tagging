@@ -20,7 +20,7 @@ Tagging and efficient querying of items with unions and intersections is no fun 
 
 Imagine a SQL database with concerts that need to be output ordered by date. Each item is tagged with tags like `chicago`, `rock`, `stadium`, `open-air`. Now let's try to get the following items:
 
-- 10 concerts (orderd by date) in `chicago` (limit=10, tags=["chicago"]) and the total amount of concerts in `chicago`.
+- 10 concerts (ordered by date) in `chicago` (limit=10, tags=["chicago"]) and the total amount of concerts in `chicago`.
 - The next 10 concerts, skipping the first 10,  (limit=10, tags=["chicago"], offset=10) and the total amount.
 - 40 concerts in `detroit`, `chicago` or `cleveland` (limit=40, tags=["detroit", "chicago", "cleveland"], type="union") and the total amount.
 - 50 concerts that are `rock` and in a `stadium` (limit=50, tags=["rock", "stadium"]) and the total amount.
@@ -37,16 +37,16 @@ Here is how Redis-Tagging will make the tagging of items in external databases f
 - Redis-Tagging will output all results (e.g. all items with tags `chicago` and `rock`) as a list of IDs *ordered correctly* by the score you supplied.
 - You use this list of IDs to get the actual items from your database.
 
-So with little changes you will end up with a lot less code, tables and need to maintain a complex structure just to support fast tagging.
+So with little changes you will **end up with a lot less code**, tables and need to maintain a complex structure just to support fast tagging.
 
 
 ## REST interface
 
-If you want to use the REST interface to access Redis Tagging from a non NodeJS application please have a look at: [REST Tagging](https://github.com/smrchy/rest-tagging)
+If you want to use the REST interface to access Redis Tagging from a non Node.js application please have a look at: [REST Tagging](https://github.com/smrchy/rest-tagging)
 
 ## Installation
 
-`npm install redis-tagging`
+`npm i redis-tagging --save`
 
 ## Usage
 

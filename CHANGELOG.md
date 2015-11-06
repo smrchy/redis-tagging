@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.3.0
+
+* Travis tests for Node.js 4.1 and 5.0
+* Removed Travis tests for 0.8.x and iojs
+* Node.js 0.8.x is no longer supported
+
 ## 1.2.2
 
 * Fix: For incorrect handling of `limit:0` with `tags` method
