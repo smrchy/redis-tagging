@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 1.4.0
+
+* Travis tests for Node.js 4.2
+* Upgraded to lodash 4.x
+* Loading only needed lodash modules
+
 ## 1.3.0
 
 * Travis tests for Node.js 4.1 and 5.0

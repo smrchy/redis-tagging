@@ -12,8 +12,12 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ###
 
-RedisInst = require "redis"
-_ = require "lodash"
+RedisInst 	= require "redis"
+_template 	= require "lodash/template"
+_isNaN 		= require "lodash/isNaN"
+_isArray 	= require "lodash/isArray"
+_isNumber 	= require "lodash/isNumber"
+_isString	= require "lodash/isString"
 
 # # Redis Tagging
 #
@@ -193,9 +197,7 @@ class RedisTagging
 				prefix + tag
 
 			# Create a temporary Redis key with the result
-			mc.push [ 'z' + options.type + 'store', rndkey, _keys.length]
-				.concat(_keys)
-				.concat( [ 'AGGREGATE', 'MIN' ] )
+			mc.push [ 'z' + options.type + 'store', rndkey, _keys.length].concat(_keys).concat( [ 'AGGREGATE', 'MIN' ] )
 
 			# If limit is 0 we don't need to return results. Just the total_rows
 			if options.limit > 0 
@@ -354,7 +356,7 @@ class RedisTagging
 
 	_handleError: (cb, err, data={}) =>
 		# try to create a error Object with humanized message
-		if _.isString(err)
+		if _isString(err)
 			_err = new Error()
 			_err.name = err
 			_err.message = @_ERRORS?[err]?(data) or "unkown"
@@ -367,7 +369,7 @@ class RedisTagging
 	_initErrors: =>
 		@_ERRORS = {}
 		for key, msg of @ERRORS
-			@_ERRORS[key] = _.template(msg)
+			@_ERRORS[key] = _template(msg)
 		return
 
 	_VALID:
@@ -384,7 +386,7 @@ class RedisTagging
 				when "score"
 					o[item] = parseInt(o[item] or 0, 10)
 				when "limit"
-					if not _.isNumber(o[item]) or _.isNaN(o[item])
+					if not _isNumber(o[item]) or _isNaN(o[item])
 						o[item] = 100
 					o[item] = Math.abs(parseInt(o[item], 10))
 				when "offset", "withscores", "amount"
@@ -410,11 +412,11 @@ class RedisTagging
 						@_handleError(cb, "missingParameter", {item:item})
 						return false
 				when "score", "limit", "offset", "withscores", "amount"
-					if _.isNaN(o[item])
+					if _isNaN(o[item])
 						@_handleError(cb, "invalidFormat", {item:item})
 						return false
 				when "tags"
-					if not _.isArray(o[item]) 
+					if not _isArray(o[item]) 
 						@_handleError(cb, "invalidFormat", {item:item})
 						return false
 
