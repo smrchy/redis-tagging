@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.5.0
+
+* Travis tests for Node 6, 8, 10
+* Cleaned up code and dependencies
+
 ## 1.4.0
 
 * Travis tests for Node.js 4.2

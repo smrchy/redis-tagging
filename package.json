@@ -1,31 +1,30 @@
 {
-    "name": "redis-tagging",
-    "description": "Fast and simple tagging of (sorted) items",
-    "version": "1.4.0",
-    "author": "P. Liess <smrchy+npm@gmail.com>",
-    "engines": {
-		"node": "> 0.10.20"
+	"name": "redis-tagging",
+	"description": "Fast and simple tagging of (sorted) items",
+	"version": "1.4.0",
+	"author": "P. Liess <smrchy+npm@gmail.com>",
+	"engines": {
+		"node": "> 6.0.0"
 	},
 	"scripts": {
-		"test": "mocha ./test/test.js"
+		"test": "mocha ./test/test.js",
+		"build": "coffee -cb index.coffee && coffee -cb test/test.coffee"
 	},
 	"dependencies": {
-		"redis": "2.4.2",
-		"lodash": "4.x"
-	},
-	"optionalDependencies": {
-		"hiredis": "0.4.1"
+		"redis": "2.8.0",
+		"lodash": "4.17.15"
 	},
 	"devDependencies": {
 		"mocha": "2.3.4",
-		"should": "8.2.0"
+		"should": "8.2.0",
+		"coffeescript": "2.4.1"
 	},
 	"keywords": [
 		"tags",
 		"tagging",
 		"redis"
 	],
-	"repository" : {
+	"repository": {
 		"type": "git",
 		"url": "http://github.com/smrchy/redis-tagging.git"
 	}
