@@ -11,7 +11,7 @@
 		"build": "coffee -cb index.coffee && coffee -cb test/test.coffee"
 	},
 	"dependencies": {
-		"redis": "2.8.0",
+		"redis": "3.1.1",
 		"lodash": "4.17.15"
 	},
 	"devDependencies": {
