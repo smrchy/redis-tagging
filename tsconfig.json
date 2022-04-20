@@ -1,0 +1,21 @@
+{
+    "extends": "@tsconfig/node14/tsconfig.json",
+    "compilerOptions": {
+        "declaration": true,
+        "declarationMap": true,
+        "noImplicitAny": false,
+        "outDir": "./lib",
+        "preserveConstEnums": true,
+        "removeComments": true,
+        "resolveJsonModule": true,
+        "sourceMap": false,
+        "watch": false
+    },
+    "include": [
+        "index.ts"
+    ],
+    "exclude": [
+        "node_modules",
+        "test/*"
+    ]
+}
