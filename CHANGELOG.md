@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 2.0.0
+
+* Codebase was ported to typescript
+* Added typescript types
+* Change to promise-based - drop support for callbacks
+* Remove lodash
+* Upgrade to redis 4.x
+* Upgrade Node.js to 14.x
+
 ## 1.5.0
 
 * Travis tests for Node 6, 8, 10

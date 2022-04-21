@@ -4,13 +4,18 @@
 
 Fast and simple tagging of (sorted) items.
 
+## BREAKING MAJOR RELEASE v2.x
+
+> To migrate from v1 to v2 see the [migration guide](./_docs/migration_v1_to_v2.md)\
+> For changes see [CHANGELOG.md](https://github.com/smrchy/redis-tagging/blob/master/CHANGELOG.md)
+
 ## Features
 
 - **Maintains the order of tagged items** with the help of **Redis Sorted Sets**.
 - **Unions** and **intersections** on tags while also maintaining the order.
 - **Fast and efficient paging** over thousands of results with support of `limit`, `offset`.
 - Namespaces to keep multiple "buckets" of tags on the same server.
-- Counters for each tag in a namespace. 
+- Counters for each tag in a namespace.
 - REST interface via [REST Tagging](https://github.com/smrchy/rest-tagging)
 - [Test coverage](http://travis-ci.org/smrchy/redis-tagging)
 
@@ -26,7 +31,7 @@ Imagine a SQL database with concerts that need to be output ordered by date. Eac
 - 50 concerts that are `rock` and in a `stadium` (limit=50, tags=["rock", "stadium"]) and the total amount.
 - The top 20 tags used and the amount of items tagged with each.
 
-Those queries together with the maintenance of tables and indexes can be a pain with SQL. Enter Redis and its fast in-memory set opererations.
+Those queries together with the maintenance of tables and indexes can be a pain with SQL. Enter Redis and its fast in-memory set operations.
 
 ### Fast and efficient tagging
 
@@ -39,14 +44,13 @@ Here is how Redis-Tagging will make the tagging of items in external databases f
 
 So with little changes you will **end up with a lot less code**, tables and need to maintain a complex structure just to support fast tagging.
 
-
 ## REST interface
 
 If you want to use the REST interface to access Redis Tagging from a non Node.js application please have a look at: [REST Tagging](https://github.com/smrchy/rest-tagging)
 
 ## Installation
 
-`npm i redis-tagging --save`
+`npm i redis-tagging`
 
 ## Usage
 
@@ -54,40 +58,59 @@ Parameters for RedisTagging:
 
 * `host` (String): *optional (Default: "127.0.0.1")* The Redis server
 * `port` (Number): *optional (Default: 6379)* The Redis port
-* `options`, *optional* Default: {}. Additional options. See: https://github.com/mranney/node_redis#rediscreateclientport-host-options
+* `options`, *optional* Additional options. If this is used then `port` and `host` will be ignored and have to be provided on this object. See: [Client Configuration Guide](https://github.com/redis/node-redis/blob/master/docs/client-configuration.md)
 * `nsprefix` (String): *optional (Default: "rt")* The namespace prefix used for all keys created by Redis Tagging
 * `client`: *optional* An external RedisClient object which will be used for the connection.
 
 ```javascript
-var RedisTagging = require("redis-tagging");
-var rt = new RedisTagging({host: "127.0.0.1", port: 6379, nsprefix: "rt"} );
+import RedisTagging from "redis-tagging";
+const rt = new RedisTagging({host: "127.0.0.1", port: 6379, nsprefix: "rt"});
+
+(async () =>{
+    try {
+        // any calls to redis tagging
+        await rt.set({bucket: "one", id: "a", tags: ["cool", "fun"]})
+    } catch (err){
+        // catch errors here - e.g. invalid options or redis error
+    }
+})();
+
 ```
 
-**Important:** Redis-Tagging works with items from your database (whatever you might use). Its purpose is to make tag based lookups fast and easy.  
-A typical item in your database should include an id (the primary key) and a list of tags for this items. You could store this as a JSON string (e.g. `["car", "bmw", "suv", "x5"]`.  
+**Important:** Redis-Tagging works with items from your database (whatever you might use). Its purpose is to make tag based lookups fast and easy.
+A typical item in your database should include an id (the primary key) and a list of tags for this items. You could store this as a JSON string (e.g. `["car", "bmw", "suv", "x5"]`.
 You'll want to try to keep your db in sync with the item ids stored in Redis-Tagging.
 
-Go through the following examples to see what Redis-Tagging can do for you: 
+Go through the following examples to see what Redis-Tagging can do for you:
+
+### Start client's connection
+
+Redis Tagging will check if the connection is open for every command and connect automatically if necessary.
+
+### Close client's connection
+
+Gracefully close a client's connection to Redis, by sending the QUIT command to the server. Before quitting, the client executes any remaining commands in its queue, and will receive replies from Redis for each of them. This is **not** possible if a external has been provided to RedisTagging on creation. External clients have to be closed on their own.
+
+```javascript
+await rt.quit();
+```
 
 ### Set tags for an item
 
-This will create an item with the id `itm123`.  
+This will create an item with the id `itm123`.
 Note: There is no partial update of tags for an item. You always write the full list of tags.
 
 ```javascript
-rt.set(
-	{
-		bucket: "concerts",
-		id: "itm123",
-		tags: ["new york", "stadium", "rock", "open-air"],
-		score: 1356341337
-	},
-	function (err, resp) {
-		if (resp === true) {
-			// item was saved
-		}
-	}
+const resp = await rt.set(
+    {
+        bucket: "concerts",
+        id: "itm123",
+        tags: ["new york", "stadium", "rock", "open-air"],
+        score: 1356341337
+    }
 );
+// resp === true
+// item was saved
 ```
 
 ### Get tags for an item
@@ -97,55 +120,47 @@ Returns all tags for an item id.
 Note: This method is usually not needed if you store the tags for each item in your database.
 
 ```javascript
-rt.get(
-	{
-		bucket: "concerts",
-		id: "itm123"
-	},
-	function (err, resp) {
-		// resp countains an array of all tags
-		// For the above set example resp will contain:
-		// ["new york", "stadium", "rock", "open-air"]
-	}
+const resp = await rt.get(
+    {
+        bucket: "concerts",
+        id: "itm123"
+    }
 );
+// resp contains an array of all tags
+// For the above set example resp will contain:
+// ["new york", "stadium", "rock", "open-air"]
 ```
 
 ### Remove all tags for an item
 
-Note: This is the same as using `set` with an empty array of tags.
+Note: This is the same as using `set` with an empty array of tags.\
+`.remove()` will always return true if no error is thrown even if the id does not exist in redis.
 
 ```javascript
-rt.remove(
-	{
-		bucket: "concerts",
-		id: "itm123"
-	},
-	function (err, resp) {
-		if (resp === true) {
-			// item was removed
-		}
-	}
+const resp = await rt.remove(
+    {
+        bucket: "concerts",
+        id: "itm123"
+    }
 );
+// resp === true
 ```
 
 ### Get all item ids in a bucket
 
 ```javascript
-rt.allids(
-	{
-		bucket: "concerts"
-	}
-	,
-	function (err, resp) {
-		// resp countains an array of all ids
-	}
+const resp = await rt.allids(
+    {
+        bucket: "concerts"
+    }
 );
+// resp contains an array of all ids
 ```
 
 ### Tags: Query items by tag
 
 The main method. Return the IDs for one or more tags. When more than one tag is supplied the query can be an intersection (default) or a union.
-`type=inter` (default) only those IDs will be returned where all tags match. 
+`type=inter` (default) only those IDs will be returned where all tags match.
 `type=union` all IDs where any tag matches will be returned.
 
 Parameters object:
@@ -159,49 +174,47 @@ Parameters object:
 * `type` (String) *optional* "inter", "union" Default: "inter"
 
 ```javascript
-rt.tags(
-	{
-		bucket: "concerts",
-		tags: ["berlin", "rock"],
-		limit: 2,
-		offset: 4
-	},
-	function (err, resp) {
-		// resp contains:
-		// 	{"total_items":108,
-		//  "items":["8167","25652"],
-		//  "limit":2,
-		//  "offset":4}
-	}
+const resp = await rt.tags(
+    {
+        bucket: "concerts",
+        tags: ["berlin", "rock"],
+        limit: 2,
+        offset: 4
+    }
 );
+// resp contains:
+//  {
+//      "total_items":108,
+//      "items":["8167","25652"],
+//      "limit":2,
+//      "offset":4
+//  }
 ```
+
 The returned data is item no. 5 and 6. The first 4 got skipped (offset=4). You can now do a
 
 `SELECT * FROM Concerts WHERE ID IN (8167,25652) ORDER BY Timestamp DESC`
-
 
 ### Top Tags
 
 Return the top *n* tags of a bucket.
 
 ```javascript
-rt.toptags(
+const resp = await rt.toptags(
 {
-		bucket: "concerts",
-		amount: 3
-	},
-	function (err, resp) {
-		// resp contains:
-		// 	{
-		//		"total_items": 18374,
-		//	 	"items":[
-		//			{"tag":"rock", "count":1720},
-		//			{"tag":"pop", "count":1585},
-		//			{"tag":"New York", "count":720}
-		//		]
-		//	}
-	}
+        bucket: "concerts",
+        amount: 3
+    }
 );
+// resp contains:
+//  {
+//      "total_items": 18374,
+//      "items":[
+//          {"tag":"rock", "count":1720},
+//          {"tag":"pop", "count":1585},
+//          {"tag":"New York", "count":720}
+//      ]
+//  }
 ```
 
 ### Buckets
@@ -211,11 +224,8 @@ List all buckets with at least one item stored in Redis.
 Important: This method uses the Redis `keys` command. Use with care.
 
 ```javascript
-rt.buckets(
-	function (err, resp) {
-		// resp contains an array with all buckets
-	}
-);
+const resp = await rt.buckets();
+// resp contains an array with all buckets
 ```
 
 ### Remove a bucket
@@ -223,24 +233,21 @@ rt.buckets(
 Removes a single bucket and all items
 
 ```javascript
-rt.removebucket(
-	{
-		bucket: "concerts"
-	},
-	function (err, resp) {
-		if (resp === true) {
-			// bucket was removed
-		}
-	}
+const resp = await rt.removebucket(
+    {
+        bucket: "concerts"
+    }
 );
+// resp === true
+// bucket was removed
 ```
 
 ## How to migrate to Redis-Tagging
 
 - Make sure your DB has the following fields for the items you want to tag (names don't need to match exactly):
-	- `id`: A primary key to quickly find your item.
-	- `score`: Any number you use to sort your data. This is usually a date. If you saved a date in date-format you need to convert it to a numeric timestamp.
-	- `tags`: A list of tags for this item. It is up to you how you store this. Usually a normal string field is sufficient.
+  - `id`: A primary key to quickly find your item.
+  - `score`: Any number you use to sort your data. This is usually a date. If you saved a date in date-format you need to convert it to a numeric timestamp.
+  - `tags`: A list of tags for this item. It is up to you how you store this. Usually a normal string field is sufficient.
 - Do a `set` for each item to populate the Redis-Tagging data.
 - When you insert / update / delete items in your DB make sure you also tell Redis-Tagging about it.
 - Now use the methods described above to make intersections and get the IDs back.
@@ -249,24 +256,16 @@ rt.removebucket(
 
 ## CHANGELOG
 
-See https://github.com/smrchy/redis-tagging/blob/master/CHANGELOG.md
+See [CHANGELOG.md](https://github.com/smrchy/redis-tagging/blob/master/CHANGELOG.md)
 
 ## Other projects
 
 |Name|Description|
 |:--|:--|
-|[**node-cache**](https://github.com/tcs-de/nodecache)|Simple and fast Node.js internal caching. Node internal in memory cache like memcached.|
+|[**node-cache**](https://github.com/node-cache/node-cache)|Simple and fast Node.js internal caching. Node internal in memory cache like memcached.|
 |[**rsmq**](https://github.com/smrchy/rsmq)|A lightweight message queue for Node.js that requires no dedicated queue server. Just a Redis server.|
 |[**redis-sessions**](https://github.com/smrchy/redis-sessions)|An advanced session store for Node.js and Redis|
 |[**rsmq-worker**](https://github.com/mpneuried/rsmq-worker)|Helper to implement a worker based on [RSMQ (Redis Simple Message Queue)](https://github.com/smrchy/rsmq).|
-|[**redis-notifications**](https://github.com/mpneuried/redis-notifications)|A Redis based notification engine. It implements the rsmq-worker to safely create notifications and recurring reports.|
-|[**task-queue-worker**](https://github.com/smrchy/task-queue-worker)|A powerful tool for background processing of tasks that are run by making standard http requests.|
-|[**obj-schema**](https://github.com/mpneuried/obj-schema)|Simple module to validate an object by a predefined schema|
-|[**connect-redis-sessions**](https://github.com/mpneuried/connect-redis-sessions)|A connect or express middleware to use [redis sessions](https://github.com/smrchy/redis-sessions) that lets you handle multiple sessions per user_id.|
-|[**systemhealth**](https://github.com/mpneuried/systemhealth)|Node module to run simple custom checks for your machine or it's connections. It will use [redis-heartbeat](https://github.com/mpneuried/redis-heartbeat) to send the current state to Redis.|
-|[**soyer**](https://github.com/mpneuried/soyer)|Soyer is small lib for serverside use of Google Closure Templates with node.js.|
-|[**grunt-soy-compile**](https://github.com/mpneuried/grunt-soy-compile)|Compile Goggle Closure Templates (SOY) templates including the handling of XLIFF language files.|
-|[**backlunr**](https://github.com/mpneuried/backlunr)|A solution to bring Backbone Collections together with the browser fulltext search engine Lunr.js|
 
 ## The MIT License
 
