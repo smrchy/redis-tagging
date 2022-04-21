@@ -298,7 +298,8 @@ describe("Redis-Tagging Test", async () => {
 			const resp = await rtExternal.set({bucket: bucket2, id: "321", score: 12, tags: ["external", "client"]});
 			resp.should.eql(true);
 			const resp2 = await rtExternal.get({bucket: bucket2, id: "321"});
-			resp2.should.eql(["client", "external"]);
+			resp2.should.containEql("client");
+			resp2.should.containEql("external");
 		});
 
 		it("Try to quit external connection: FAILS", async () => {
@@ -317,7 +318,8 @@ describe("Redis-Tagging Test", async () => {
 		it("Reconnect after quitting external connection", async () => {
 			await client.quit();
 			const resp = await rtExternal.get({bucket: bucket2, id: "321"});
-			resp.should.eql(["client", "external"]);
+			resp.should.containEql("client");
+			resp.should.containEql("external");
 		});
 
 		it("Continue using external client", async () => {
