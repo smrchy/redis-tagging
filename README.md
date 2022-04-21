@@ -1,7 +1,5 @@
 # Redis-Tagging
 
-[![Build Status](https://secure.travis-ci.org/smrchy/redis-tagging.png?branch=master)](http://travis-ci.org/smrchy/redis-tagging)
-
 Fast and simple tagging of (sorted) items.
 
 ## BREAKING MAJOR RELEASE v2.x
