@@ -281,12 +281,12 @@ describe("Redis-Tagging Test", async () => {
 			await client.set("external:test3", "value3");
 
 			const resp = await client.keys("external:*");
-			resp.should.eql(["external:test1", "external:test3", "external:test2"]);
+			resp.should.have.lengthOf(3);
 		});
 
 		after(async () => {
 			if (!client.isOpen) await client.connect();
-			const delProm: Promise<any>[] = [];
+			const delProm: Promise<any>[] = [rtExternal.removebucket({ bucket: bucket2 })];
 			for (const key of (await client.keys("external:*"))) {
 				delProm.push(client.del(key));
 			}

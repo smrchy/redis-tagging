@@ -346,7 +346,6 @@ export default class RedisTagging {
 		];
 
 		if (!this.redis.isOpen) await this.redis.connect();
-
 		const resp = await this.redis.multiExecutor(mc.map(v => ({args: v.map(n => n.toString())})));
 		const rkeys = [ns + ":IDS", ns + ":TAGCOUNT"];
 
@@ -355,7 +354,7 @@ export default class RedisTagging {
 		}
 
 		for (const e of resp[1] as string[]) {
-			rkeys.push(ns + ":TAG:" + e);
+			rkeys.push(ns + ":TAGS:" + e);
 		}
 
 		if (!this.redis.isOpen) await this.redis.connect();
