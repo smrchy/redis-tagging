@@ -1,15 +1,23 @@
 import "mocha";
 import should from "should";
 import RedisTagging from "../index";
+import { createClient } from "redis";
 
 describe("Redis-Tagging Test", async () => {
-	let rt: RedisTagging = null;
+	const rt = new RedisTagging();
+	const client = createClient({
+		socket: {
+			host: "localhost",
+			port: 6379
+		},
+	});
+	const rtExternal = new RedisTagging({
+		client
+	});
 	const bucket1 = "test";
 	const bucket2 = "TEST";
 
 	before(async () => {
-		rt = new RedisTagging();
-		await rt.connect();
 	});
 
 	after(async () => {
@@ -26,8 +34,11 @@ describe("Redis-Tagging Test", async () => {
 					tags: ["just", "testing"],
 				});
 			} catch (err) {
-				should(err.message).equal("Invalid score format");
-				return;
+				if (err instanceof Error){
+					should(err.message).equal("Invalid score format");
+					return;
+				}
+				throw new Error("err was not an instance of Error");
 			}
 			throw new Error("Should have thrown an error");
 		});
@@ -37,8 +48,11 @@ describe("Redis-Tagging Test", async () => {
 				// @ts-ignore
 				await rt.set({ bucket: bucket1, id: "123" });
 			} catch (err) {
-				err.message.should.equal("No tags supplied");
-				return;
+				if (err instanceof Error){
+					err.message.should.equal("No tags supplied");
+					return;
+				}
+				throw new Error("err was not an instance of Error");
 			}
 			throw new Error("Should have thrown an error");
 		});
@@ -48,8 +62,11 @@ describe("Redis-Tagging Test", async () => {
 				// @ts-ignore
 				await rt.set({ bucket: bucket1, id: "123", tags: "string..." });
 			} catch (err) {
-				err.message.should.equal("Invalid tags format");
-				return;
+				if (err instanceof Error){
+					err.message.should.equal("Invalid tags format");
+					return;
+				}
+				throw new Error("err was not an instance of Error");
 			}
 			throw new Error("Should have thrown an error");
 		});
@@ -73,8 +90,11 @@ describe("Redis-Tagging Test", async () => {
 				// @ts-ignore
 				await rt.get({ bucket: bucket1 });
 			} catch (err) {
-				err.message.should.equal("No id supplied");
-				return;
+				if (err instanceof Error){
+					err.message.should.equal("No id supplied");
+					return;
+				}
+				throw new Error("err was not an instance of Error");
 			}
 			throw new Error("Should have thrown an error");
 		});
@@ -84,8 +104,11 @@ describe("Redis-Tagging Test", async () => {
 				// @ts-ignore
 				await rt.get({});
 			} catch (err) {
-				err.message.should.equal("No bucket supplied");
-				return;
+				if (err instanceof Error){
+					err.message.should.equal("No bucket supplied");
+					return;
+				}
+				throw new Error("err was not an instance of Error");
 			}
 			throw new Error("Should have thrown an error");
 		});
@@ -235,13 +258,72 @@ describe("Redis-Tagging Test", async () => {
 
 			resp.should.containEql("test");
 		});
-	});
 
-	describe("CLEANUP", () => {
+		it("Quit connection; Subsequent commands should reconnect", async () => {
+			await rt.quit();
+			const resp = await rt.set({bucket: bucket1, id: "789", score: 10, tags: ["all", "testing"]});
+			resp.should.equal(true);
+		});
+
 		it("Remove bucket 'test'", async () => {
 			const resp = await rt.removebucket({ bucket: bucket1 });
 
 			resp.should.equal(true);
+		});
+	});
+
+	describe("EXTERNAL CLIENT", () => {
+
+		before(async () => {
+			await client.connect();
+			await client.set("external:test1", "value1");
+			await client.set("external:test2", "value2");
+			await client.set("external:test3", "value3");
+
+			const resp = await client.keys("external:*");
+			resp.should.eql(["external:test1", "external:test3", "external:test2"]);
+		});
+
+		after(async () => {
+			if (!client.isOpen) await client.connect();
+			const delProm: Promise<any>[] = [];
+			for (const key of (await client.keys("external:*"))) {
+				delProm.push(client.del(key));
+			}
+			await Promise.all(delProm);
+			await client.quit();
+		});
+
+		it("Tag items with external client", async () => {
+			const resp = await rtExternal.set({bucket: bucket2, id: "321", score: 12, tags: ["external", "client"]});
+			resp.should.eql(true);
+			const resp2 = await rtExternal.get({bucket: bucket2, id: "321"});
+			resp2.should.eql(["client", "external"]);
+		});
+
+		it("Try to quit external connection: FAILS", async () => {
+			try {
+				await rtExternal.quit();
+			} catch (err) {
+				if (err instanceof Error) {
+					err.message.should.equal("Cannot quit external client");
+					return;
+				}
+				throw new Error("err was not an instance of Error");
+			}
+			throw new Error("Should have thrown an error");
+		});
+
+		it("Reconnect after quitting external connection", async () => {
+			await client.quit();
+			const resp = await rtExternal.get({bucket: bucket2, id: "321"});
+			resp.should.eql(["client", "external"]);
+		});
+
+		it("Continue using external client", async () => {
+			await client.set("external:test4", "value4");
+			const resp = await client.keys("external:*");
+			resp.should.have.lengthOf(4);
 		});
 	});
 });

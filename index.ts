@@ -1,9 +1,17 @@
 import { createClient, RedisClientOptions } from "redis";
+import RedisClient from "@node-redis/client/dist/lib/client";
 import { RedisTaggingOptions, IInputOptions, IValidatedOptions } from "./interfaces";
 
 const ERRORS = {
-	missingParameter: (item: string) => `No ${item} supplied`,
-	invalidFormat: (item: string) => `Invalid ${item} format`,
+	generic: (name: string, message?: string): Error => {
+		const error = new Error(message);
+		error.name = name;
+		error.message = message ?? "unknown";
+		return error;
+	},
+	missingParameter: (item: string): Error => ERRORS.generic("missingParameter", `No ${item} supplied`),
+	invalidFormat: (item: string): Error => ERRORS.generic("invalidFormat", `Invalid ${item} format`),
+	cannotQuitExternalClient: (): Error => ERRORS.generic("cannotQuitExternalClient", "Cannot quit external client"),
 };
 
 /**
@@ -15,8 +23,9 @@ const ERRORS = {
  */
 
 export default class RedisTagging {
-	public redisns: string;
-	public redis: ReturnType<typeof createClient>;
+	private redisns: string;
+	private redis: ReturnType<typeof createClient>;
+	private externalClient: boolean = false;
 
 	/**
 	 * Constructor of RedisTagging
@@ -32,13 +41,12 @@ export default class RedisTagging {
 		this.redisns = (options.nsprefix || "rt") + ":";
 		let port = options.port || 6379;
 		let host = options.host || "127.0.0.1";
-		let redisOptions = options.options || {};
 
-		if (options.client?.constructor?.name === "RedisClient") {
+		if (options.client instanceof RedisClient) {
 			this.redis = options.client;
-			this.redis.connect();
+			this.externalClient = true;
 		} else {
-			this.redis = createClient({ socket: { port, host }, ...redisOptions });
+			this.redis = createClient(options.options ?? { socket: { port, host }});
 			this.redis.on("error", err => console.log("Redis Client Error", err));
 		}
 	}
@@ -49,16 +57,11 @@ export default class RedisTagging {
 	 * @returns {Promise<void>}
 	 */
 	public quit(): Promise<void> {
-		return this.redis.quit();
-	}
-
-	/**
-	 * Connect to redis server
-	 *
-	 * @returns {Promise<void>}
-	 */
-	public connect(): Promise<void> {
-		return this.redis.connect();
+		if (this.externalClient) {
+			throw ERRORS.cannotQuitExternalClient();
+		}
+		if (this.redis.isOpen) return this.redis.quit();
+		return Promise.resolve();
 	}
 
 	/**
@@ -73,6 +76,8 @@ export default class RedisTagging {
 		const o = this.validate(options, ["bucket", "id"]);
 
 		let ns = this.redisns + o.bucket;
+
+		if (!this.redis.isOpen) await this.redis.connect();
 
 		return this.redis.sMembers(`${ns}:ID:${o.id}`);
 	}
@@ -106,6 +111,8 @@ export default class RedisTagging {
 
 		if (mc.length === 0) return true;
 
+		if (!this.redis.isOpen) await this.redis.connect();
+
 		const resp = await this.redis.multiExecutor(mc.map(v => ({args: v.map(n => n.toString())})));
 		return true;
 	}
@@ -134,6 +141,9 @@ export default class RedisTagging {
 		const o = this.validate(options, ["bucket"]);
 
 		let ns = this.redisns + o.bucket;
+
+		if (!this.redis.isOpen) await this.redis.connect();
+
 		return this.redis.sMembers(ns + ":IDS");
 	}
 
@@ -229,6 +239,8 @@ export default class RedisTagging {
 			mc.push(["del", rndkey]);
 		}
 
+		if (!this.redis.isOpen) await this.redis.connect();
+
 		const resp = await this.redis.multiExecutor(mc.map(v => ({args: v.map(n => n.toString())})));
 
 		let rows;
@@ -281,6 +293,8 @@ export default class RedisTagging {
 			["zrevrange", rediskey, 0, o.amount, "WITHSCORES"],
 		];
 
+		if (!this.redis.isOpen) await this.redis.connect();
+
 		const resp = await this.redis.multiExecutor(mc.map(v => ({
 			args: v.map(n => n.toString())
 		})));
@@ -308,6 +322,8 @@ export default class RedisTagging {
 	 * @returns {Promise<string[]>}
 	 */
 	public async buckets(): Promise<string[]> {
+		if (!this.redis.isOpen) await this.redis.connect();
+
 		const resp = await this.redis.keys(this.redisns + "*:TAGCOUNT");
 		return resp.map((v) => v.split(":")[1]);
 	}
@@ -329,6 +345,8 @@ export default class RedisTagging {
 			["zrange", ns + ":TAGCOUNT", 0, -1],
 		];
 
+		if (!this.redis.isOpen) await this.redis.connect();
+
 		const resp = await this.redis.multiExecutor(mc.map(v => ({args: v.map(n => n.toString())})));
 		const rkeys = [ns + ":IDS", ns + ":TAGCOUNT"];
 
@@ -339,6 +357,8 @@ export default class RedisTagging {
 		for (const e of resp[1] as string[]) {
 			rkeys.push(ns + ":TAG:" + e);
 		}
+
+		if (!this.redis.isOpen) await this.redis.connect();
 
 		await this.redis.del(rkeys);
 
@@ -355,6 +375,9 @@ export default class RedisTagging {
 	private async deleteID(ns: string, id: string): Promise<(string|number)[][]> {
 		const mc: (string|number)[][] = [];
 		const id_index = ns + ":ID:" + id;
+
+		if (!this.redis.isOpen) await this.redis.connect();
+
 		const resp = await this.redis.sMembers(id_index);
 		if (resp.length) {
 			for (const tag of resp) {
@@ -367,20 +390,6 @@ export default class RedisTagging {
 		}
 
 		return mc;
-	}
-
-	/**
-	 * Create a error with a message that can be customized
-	 *
-	 * @param err error type
-	 * @param data message for insertion in error message
-	 * @returns {Error}
-	 */
-	private handleError(err: string, data: string = ""): Error {
-		const error = new Error();
-		error.name = err;
-		error.message = ERRORS[err](data) || "unknown";
-		return error;
 	}
 
 	/**
@@ -401,23 +410,23 @@ export default class RedisTagging {
 			switch (key) {
 				case "bucket":
 					if (!options[key])
-						throw this.handleError("missingParameter", key);
+						throw ERRORS.missingParameter(key);
 					validOptions[key] = options[key].toString();
 					if (!this.VALID[key].test(validOptions[key]))
-						throw this.handleError("invalidFormat", key);
+						throw ERRORS.invalidFormat(key);
 					break;
 				case "id":
 					if (!options[key])
-						throw this.handleError("missingParameter", key);
+						throw ERRORS.missingParameter(key);
 					validOptions[key] = options[key].toString();
 					if (!validOptions[key].length)
-						throw this.handleError("missingParameter", key);
+						throw ERRORS.missingParameter(key);
 					break;
 				case "tags":
 					if (!options[key])
-						throw this.handleError("missingParameter", key);
+						throw ERRORS.missingParameter(key);
 					if (!Array.isArray(options[key])) {
-						throw this.handleError("invalidFormat", key);
+						throw ERRORS.invalidFormat(key);
 					}
 					validOptions[key] = options[key].map(v => v.toString());
 					break;
@@ -426,7 +435,7 @@ export default class RedisTagging {
 					if (typeof validOptions[key] === "string")
 						validOptions[key] = parseInt(options[key], 10);
 					if (isNaN(validOptions[key]))
-						throw this.handleError("invalidFormat", key);
+						throw ERRORS.invalidFormat(key);
 					break;
 				case "limit":
 					if (isNaN(options[key]))
@@ -440,7 +449,7 @@ export default class RedisTagging {
 					if (typeof validOptions[key] === "string")
 						validOptions[key] = parseInt(validOptions[key], 10);
 					if (isNaN(validOptions[key]))
-						throw this.handleError("invalidFormat", key);
+						throw ERRORS.invalidFormat(key);
 					validOptions[key] = Math.abs(validOptions[key]);
 					break;
 				case "order":
@@ -452,7 +461,7 @@ export default class RedisTagging {
 					else validOptions[key] = "inter";
 					break;
 				default:
-					throw this.handleError("invalidParameter", key);
+					throw ERRORS.invalidFormat(key);
 			}
 		}
 		return validOptions as { [K in T]: IValidatedOptions[K] };
