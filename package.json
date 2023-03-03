@@ -33,7 +33,7 @@
 		"coffeescript": "2.4.1",
 		"eslint": "^8.13.0",
 		"eslint-plugin-jsdoc": "^39.2.4",
-		"mocha": "2.3.4",
+		"mocha": "10.2.0",
 		"nodemon": "^2.0.15",
 		"should": "^13.2.3",
 		"ts-node": "^10.7.0",
